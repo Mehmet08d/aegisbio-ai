@@ -3,3 +3,8 @@ biopython
 plotly
 pandas
 reportlab
+streamlit
+biopython
+plotly
+pandas
+openai
