@@ -1,0 +1,302 @@
+import streamlit as st
+from Bio import Entrez, SeqIO
+from Bio.Align import PairwiseAligner
+import plotly.graph_objects as go
+import pandas as pd
+import io
+
+# PDF Oluşturma Kütüphaneleri (ReportLab)
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib import colors
+
+# --- SAYFA KONFİGÜRASYONU, LOGO VE FAVICON ---
+st.set_page_config(
+    page_title="AegisBio AI | Mitonuclear Compatibility Platform",
+    page_icon="🧬",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+# --- MODERN BIOTECH VE LOGO STİLLERİ (CSS) ---
+st.markdown("""
+    <style>
+    .main { background: linear-gradient(135deg, #0a0d14 0%, #111827 50%, #0d131f 100%); color: #e2e8f0; }
+    section[data-testid="stSidebar"] { background-color: rgba(15, 23, 42, 0.75) !important; backdrop-filter: blur(12px); border-right: 1px solid rgba(255, 255, 255, 0.1); }
+    div[data-testid="stMetric"] { background: rgba(30, 41, 59, 0.6) !important; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px !important; padding: 20px !important; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3); }
+    .stButton>button { width: 100%; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff !important; font-weight: 700 !important; border-radius: 12px !important; height: 52px !important; border: none !important; }
+    .stDownloadButton>button { width: 100%; background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: #ffffff !important; font-weight: 700 !important; border-radius: 12px !important; height: 50px !important; border: none !important; }
+    
+    .brand-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 15px;
+        margin-bottom: 5px;
+    }
+    .brand-title {
+        font-size: 2.5rem;
+        font-weight: 800;
+        background: linear-gradient(90deg, #38bdf8 0%, #818cf8 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin: 0;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+AMINO_ACID_PROPERTIES = {
+    'A': {'charge': 0, 'hydrophobicity': 1.8}, 'R': {'charge': 1, 'hydrophobicity': -4.5},
+    'N': {'charge': 0, 'hydrophobicity': -3.5}, 'D': {'charge': -1, 'hydrophobicity': -3.5},
+    'C': {'charge': 0, 'hydrophobicity': 2.5}, 'Q': {'charge': 0, 'hydrophobicity': -3.5},
+    'E': {'charge': -1, 'hydrophobicity': -3.5}, 'G': {'charge': 0, 'hydrophobicity': -0.4},
+    'H': {'charge': 1, 'hydrophobicity': -3.2}, 'I': {'charge': 0, 'hydrophobicity': 4.5},
+    'L': {'charge': 0, 'hydrophobicity': 3.8}, 'K': {'charge': 1, 'hydrophobicity': -3.9},
+    'M': {'charge': 0, 'hydrophobicity': 1.9}, 'F': {'charge': 0, 'hydrophobicity': 2.8},
+    'P': {'charge': 0, 'hydrophobicity': -1.6}, 'S': {'charge': 0, 'hydrophobicity': -0.8},
+    'T': {'charge': 0, 'hydrophobicity': -0.7}, 'W': {'charge': 0, 'hydrophobicity': -0.9},
+    'Y': {'charge': 0, 'hydrophobicity': -1.3}, 'V': {'charge': 0, 'hydrophobicity': 4.2}
+}
+
+HAZIR_TURLER = {
+    "🦘 Numbat (Myrmecobius fasciatus) [Tasiyici]": "NC_011949.1",
+    "🐅 Tasman Kaplani / Thylacine (Thylacinus cynocephalus) [Tukenmis]": "NC_028319.1",
+    "🐘 Asya Fili (Elephas maximus) [Tasiyici]": "NC_005129.2",
+    "🦣 Yunlu Mamut (Mammuthus primigenius) [Tukenmis]": "NC_007596.2",
+    "🕊️ Guvercin (Columba livia) [Tasiyici]": "NC_013978.1",
+    "🦤 Dodo Kusu (Raphus cucullatus) [Tukenmis]": "NC_008263.1",
+    "🦤 Yolcu Guvercini (Ectopistes migratorius) [Tukenmis]": "NC_026685.1",
+    "👤 Modern İnsan (Homo sapiens)": "NC_012920.1",
+    "🦴 Neandertal (Homo neanderthalensis) [Tukenmis]": "NC_011137.1",
+    "✏️ Custom (Ozel NCBI Accession Kodu Girecegim)": "CUSTOM"
+}
+
+GEN_LISTESI = [
+    "🔥 TUM GENOM (13 Gen Taramasi)",
+    "ND1 (Complex I)", "ND2 (Complex I)", "ND3 (Complex I)", 
+    "ND4 (Complex I)", "ND4L (Complex I)", "ND5 (Complex I)", "ND6 (Complex I)",
+    "CYTB (Complex III)", 
+    "COX1 (Complex IV)", "COX2 (Complex IV)", "COX3 (Complex IV)", 
+    "ATP6 (Complex V)", "ATP8 (Complex V)"
+]
+
+GEN_KOD_HARITASI = {
+    "ND1 (Complex I)": "ND1", "ND2 (Complex I)": "ND2", "ND3 (Complex I)": "ND3",
+    "ND4 (Complex I)": "ND4", "ND4L (Complex I)": "ND4L", "ND5 (Complex I)": "ND5", "ND6 (Complex I)": "ND6",
+    "CYTB (Complex III)": "CYTB", "COX1 (Complex IV)": "COX1", "COX2 (Complex IV)": "COX2",
+    "COX3 (Complex IV)": "COX3", "ATP6 (Complex V)": "ATP6", "ATP8 (Complex V)": "ATP8"
+}
+
+st.markdown("""
+    <div class="brand-container">
+        <svg width="50" height="50" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M2 17L12 22L22 17" stroke="#818cf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M2 12L12 17L22 12" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="12" cy="12" r="2" fill="#38bdf8"/>
+        </svg>
+        <h1 class="brand-title">AegisBio AI</h1>
+    </div>
+    <p style='text-align: center; color: #94a3b8; font-size: 1.05rem;'>Mitonuclear Incompatibility & De-Extinction Genomic Suite</p>
+""", unsafe_allow_html=True)
+st.divider()
+
+st.sidebar.markdown("""
+    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+        <span style="font-size: 1.8rem;">🧬</span>
+        <span style="font-size: 1.2rem; font-weight: 700; color: #38bdf8;">AegisBio Control</span>
+    </div>
+""", unsafe_allow_html=True)
+
+user_email = st.sidebar.text_input("NCBI Kullanici E-posta", "biyoinformatik@gmail.com")
+Entrez.email = user_email
+
+tur1_secim = st.sidebar.selectbox("1. Tur / Tasiyici", list(HAZIR_TURLER.keys()), index=0)
+numbat_acc = st.sidebar.text_input("1. Tur NCBI Code", "NC_011949.1") if HAZIR_TURLER[tur1_secim] == "CUSTOM" else HAZIR_TURLER[tur1_secim]
+
+tur2_secim = st.sidebar.selectbox("2. Tur / Hedef", list(HAZIR_TURLER.keys()), index=1)
+thylacine_acc = st.sidebar.text_input("2. Tur NCBI Code", "NC_028319.1") if HAZIR_TURLER[tur2_secim] == "CUSTOM" else HAZIR_TURLER[tur2_secim]
+
+target_gene_raw = st.sidebar.selectbox("Incelenecek Gen", GEN_LISTESI, index=0)
+run_button = st.sidebar.button("🚀 UYUMLULUK ANALIZINI BASLAT")
+
+def ncbi_gen_getir(accession_id, gen_adi):
+    try:
+        handle = Entrez.efetch(db="nucleotide", id=accession_id, rettype="gb", retmode="text")
+        record = SeqIO.read(handle, "genbank")
+        handle.close()
+
+        gen_sozlugu = {
+            "ND1": ["ND1", "NAD1"], "ND2": ["ND2", "NAD2"], "ND3": ["ND3", "NAD3"],
+            "ND4": ["ND4", "NAD4"], "ND4L": ["ND4L", "NAD4L"], "ND5": ["ND5", "NAD5"], "ND6": ["ND6", "NAD6"],
+            "CYTB": ["CYTB", "CYTOCHROME B", "COB"], "COX1": ["COX1", "COI", "COXI"],
+            "COX2": ["COX2", "COII"], "COX3": ["COX3", "COIII"], "ATP6": ["ATP6", "ATPASE 6"], "ATP8": ["ATP8", "ATPASE 8"]
+        }
+        hedef_etiketler = gen_sozlugu.get(gen_adi, [gen_adi])
+
+        for feature in record.features:
+            if feature.type == "CDS":
+                gene_tag = feature.qualifiers.get("gene", [""])[0].upper()
+                product_tag = feature.qualifiers.get("product", [""])[0].upper()
+                if any(e in gene_tag or e in product_tag for e in hedef_etiketler):
+                    if "translation" in feature.qualifiers:
+                        return feature.qualifiers["translation"][0]
+        return None
+    except Exception:
+        return None
+
+def dizileri_hizala(seq1, seq2):
+    aligner = PairwiseAligner()
+    aligner.mode = 'global'
+    alignment = aligner.align(seq1, seq2)[0]
+    aligned_seqs = str(alignment).splitlines()
+    return aligned_seqs[0], aligned_seqs[2]
+
+def gen_analiz_et(gene_code, numbat_acc, thylacine_acc):
+    p1 = ncbi_gen_getir(numbat_acc, gene_code)
+    p2 = ncbi_gen_getir(thylacine_acc, gene_code)
+
+    if not p1 or not p2:
+        return None
+
+    al1, al2 = dizileri_hizala(p1, p2)
+    farklar = []
+    toplam_risk = 0.0
+
+    for idx in range(min(len(al1), len(al2))):
+        aa1, aa2 = al1[idx], al2[idx]
+        if aa1 != "-" and aa2 != "-" and aa1 != aa2:
+            pr1 = AMINO_ACID_PROPERTIES.get(aa1, {'charge': 0, 'hydrophobicity': 0})
+            pr2 = AMINO_ACID_PROPERTIES.get(aa2, {'charge': 0, 'hydrophobicity': 0})
+
+            yuk_f = abs(pr1['charge'] - pr2['charge'])
+            hid_f = abs(pr1['hydrophobicity'] - pr2['hydrophobicity'])
+            lokal_r = (yuk_f * 2.5) + (hid_f * 1.0)
+            toplam_risk += lokal_r
+
+            farklar.append({
+                "Gen": gene_code, "Pozisyon": idx + 1, 
+                "Tur 1 (AA)": aa1, "Tur 2 (AA)": aa2,
+                "Yuk Degisimi": yuk_f, "Hidrofobiklik Degisimi": round(hid_f, 2), 
+                "Lokal Risk Skoru": round(lokal_r, 2)
+            })
+
+    risk_skoru = min(100.0, (toplam_risk / (max(len(al1), 1) * 5.0)) * 300)
+    return {"gene": gene_code, "seq_len": len(al1), "mutations": len(farklar), "risk_score": risk_skoru, "farklar": farklar}
+
+def pdf_rapor_olustur(tur1_ad, tur2_ad, gen_adi, risk_skoru, toplam_mutasyon, detay_df):
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=30, leftMargin=30, topMargin=30, bottomMargin=30)
+    story = []
+    styles = getSampleStyleSheet()
+
+    title_style = ParagraphStyle('TitleStyle', parent=styles['Heading1'], fontSize=18, textColor=colors.HexColor('#0284c7'), spaceAfter=10)
+    story.append(Paragraph("AegisBio AI - Biyoinformatik Analiz Raporu", title_style))
+    story.append(Paragraph("<b>Platform:</b> AegisBio AI Mitonuclear Compatibility & De-Extinction Suite", styles['Normal']))
+    story.append(Spacer(1, 15))
+
+    summary_data = [
+        ["Parametre", "Deger"],
+        ["1. Tur (Tasiyici)", tur1_ad],
+        ["2. Tur (Hedef)", tur2_ad],
+        ["Incelenen Gen", gen_adi],
+        ["Toplam Mutasyonlu Lokus", str(toplam_mutasyon)],
+        ["Mitonukleer Risk Skoru", f"%{risk_skoru:.2f}"]
+    ]
+    t_summary = Table(summary_data, colWidths=[200, 300])
+    t_summary.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#0f172a')),
+        ('TEXTCOLOR', (0,0), (-1,0), colors.white),
+        ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 6),
+        ('GRID', (0,0), (-1,-1), 1, colors.HexColor('#cbd5e1')),
+    ]))
+    story.append(t_summary)
+    story.append(Spacer(1, 20))
+
+    story.append(Paragraph("<b>Mito-CRISPR Duzenleme Aday Lokuslari (Ilk 15 Nokta)</b>", styles['Heading2']))
+    story.append(Spacer(1, 10))
+
+    if not detay_df.empty:
+        table_data = [list(detay_df.columns)]
+        for idx, row in detay_df.head(15).iterrows():
+            table_data.append([str(val) for val in row.values])
+
+        t_detay = Table(table_data, colWidths=[60, 60, 70, 70, 80, 90, 80])
+        t_detay.setStyle(TableStyle([
+            ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#334155')),
+            ('TEXTCOLOR', (0,0), (-1,0), colors.white),
+            ('FONTSIZE', (0,0), (-1,-1), 8),
+            ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#94a3b8')),
+        ]))
+        story.append(t_detay)
+
+    doc.build(story)
+    buffer.seek(0)
+    return buffer
+
+if run_button:
+    if target_gene_raw == "🔥 TUM GENOM (13 Gen Taramasi)":
+        with st.spinner("AegisBio AI: Tüm Mitokondriyal Genom taranıyor..."):
+            genom_sonuclari, tum_farklar = [], []
+            progress_bar = st.progress(0)
+            genes_to_scan = list(GEN_KOD_HARITASI.values())
+
+            for i, g_code in enumerate(genes_to_scan):
+                res = gen_analiz_et(g_code, numbat_acc, thylacine_acc)
+                if res:
+                    genom_sonuclari.append(res)
+                    tum_farklar.extend(res["farklar"])
+                progress_bar.progress((i + 1) / len(genes_to_scan))
+
+            if genom_sonuclari:
+                df_summary = pd.DataFrame(genom_sonuclari)[["gene", "seq_len", "mutations", "risk_score"]]
+                df_summary.columns = ["Gen Kodu", "Dizilim Ufku (AA)", "Mutasyon Noktasi", "Risk Skoru (%)"]
+                
+                ortalama_risk = df_summary["Risk Skoru (%)"].mean()
+                toplam_mut = df_summary["Mutasyon Noktasi"].sum()
+
+                c1, c2, c3, c4 = st.columns(4)
+                c1.metric("Tur Cifti", "Genome-Wide")
+                c2.metric("Taranan Gen", f"{len(genom_sonuclari)} / 13 Gen")
+                c3.metric("Toplam Mutasyon", f"{toplam_mut} Lokus")
+                c4.metric("Ortalama Risk", f"%{ortalama_risk:.1f}")
+
+                st.markdown("<br>", unsafe_allow_html=True)
+                st.dataframe(df_summary, use_container_width=True)
+
+                df_all_muts = pd.DataFrame(tum_farklar) if tum_farklar else pd.DataFrame()
+                pdf_bytes = pdf_rapor_olustur(tur1_secim, tur2_secim, "TUM GENOM (13 Gen)", ortalama_risk, toplam_mut, df_all_muts)
+                
+                st.download_button(
+                    label="📄 RESMI AegisBio AI PDF RAPORUNU INDIR",
+                    data=pdf_bytes,
+                    file_name="AegisBio_Genom_Analiz_Raporu.pdf",
+                    mime="application/pdf"
+                )
+
+    else:
+        g_code = GEN_KOD_HARITASI[target_gene_raw]
+        with st.spinner(f"AegisBio AI: {g_code} geni analiz ediliyor..."):
+            res = gen_analiz_et(g_code, numbat_acc, thylacine_acc)
+            if res:
+                c1, c2, c3, c4 = st.columns(4)
+                c1.metric("Gen", g_code)
+                c2.metric("Dizilim", f"{res['seq_len']} AA")
+                c3.metric("Mutasyon", f"{res['mutations']} Nokta")
+                c4.metric("Risk Skoru", f"%{res['risk_score']:.1f}")
+
+                st.markdown("<br>", unsafe_allow_html=True)
+                df_fark = pd.DataFrame(res['farklar']) if res['farklar'] else pd.DataFrame()
+                
+                if not df_fark.empty:
+                    st.dataframe(df_fark, use_container_width=True)
+
+                pdf_bytes = pdf_rapor_olustur(tur1_secim, tur2_secim, g_code, res['risk_score'], res['mutations'], df_fark)
+                st.download_button(
+                    label="📄 RESMI AegisBio AI PDF RAPORUNU INDIR",
+                    data=pdf_bytes,
+                    file_name=f"AegisBio_{g_code}_Raporu.pdf",
+                    mime="application/pdf"
+                )
