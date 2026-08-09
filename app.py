@@ -17,7 +17,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- ÜNİVERSİTE DÜZEYİ GLASSMORPHISM UI TASARIMI ---
+# --- GLASSMORPHISM UI TASARIMI ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;600&display=swap');
@@ -352,7 +352,6 @@ with tab_analiz:
                             template="plotly_dark", height=450
                         )
                         fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
-                        # FIX: Unique Key eklendi
                         st.plotly_chart(fig, use_container_width=True, key="plotly_all_genes_chart")
 
                         st.markdown("### 📋 Mito-CRISPR Rehber RNA (gRNA) ve Mutasyon Dökümü")
@@ -378,7 +377,6 @@ with tab_analiz:
                             hover_data=["Tür 1 (AA)", "Tür 2 (AA)"], template="plotly_dark", height=400
                         )
                         fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
-                        # FIX: Unique Key eklendi
                         st.plotly_chart(fig, use_container_width=True, key="plotly_single_gene_chart")
                         st.dataframe(df_fark, use_container_width=True)
 
@@ -410,14 +408,15 @@ with tab_3d_view:
                 view = py3Dmol.view(width=800, height=500)
                 view.addModel(f'pdb:{pdb_id_input}', 'pdb')
                 
-                style_dict = {color_scheme: {}} if render_style != "cartoon" else {'color': color_scheme}
+                # RENKLENDİRME VE STİL AYARI DÜZELTİLDİ
+                style_dict = {'colorscheme': color_scheme} if color_scheme in ['spectrum', 'chain'] else {}
                 view.setStyle({render_style: style_dict})
                     
                 if show_surface:
                     view.addSurface(py3Dmol.VDW, {'opacity': 0.5})
                     
                 view.zoomTo()
-                # FIX: removeChild Hatasını Önleyen Unique Key
+                # FIX: showmol içindeki 'key' parametresi kaldırıldı (stmol hatası önlendi)
                 showmol(view, height=500, width=800)
         else:
             uploaded_pdb = st.file_uploader("Özel .pdb Dosyası Seçin", type=["pdb"], key="pdb_file_uploader")
@@ -426,14 +425,14 @@ with tab_3d_view:
                 view = py3Dmol.view(width=800, height=500)
                 view.addModel(pdb_str, 'pdb')
                 
-                style_dict = {color_scheme: {}} if render_style != "cartoon" else {'color': color_scheme}
+                style_dict = {'colorscheme': color_scheme} if color_scheme in ['spectrum', 'chain'] else {}
                 view.setStyle({render_style: style_dict})
                     
                 if show_surface:
                     view.addSurface(py3Dmol.VDW, {'opacity': 0.5})
                     
                 view.zoomTo()
-                # FIX: removeChild Hatasını Önleyen Unique Key
+                # FIX: showmol içindeki 'key' parametresi kaldırıldı
                 showmol(view, height=500, width=800)
 
 # ==========================================
@@ -448,7 +447,9 @@ with tab_esmfold:
     user_fasta = st.text_area("Amino Asit Dizisi (FASTA / Düz Metin)", value=varsayilan_dizi, height=120, key="fasta_input")
 
     if st.button("✨ ESMFold Yapay Zeka ile 3D PDB Yapısını Tahmin Et", key="predict_esmfold_btn"):
+        # Gelen dizideki gereksiz karakterlerin temizlenmesi
         clean_seq = "".join(user_fasta.split()).upper()
+        clean_seq = "".join([aa for aa in clean_seq if aa in AMINO_ACID_PROPERTIES])
         
         if len(clean_seq) > 400:
             st.warning("⚠️ Hızlı API tahmini için dizi uzunluğu 400 amino asitten az olmalıdır.")
@@ -458,7 +459,8 @@ with tab_esmfold:
             with st.spinner("Meta ESMFold API üzerinden 3D atomik koordinatlar hesaplanıyor..."):
                 try:
                     url = "https://api.esmatlas.com/foldSequence/v1/pdb/"
-                    response = requests.post(url, data=clean_seq, timeout=60)
+                    headers = {"Content-Type": "text/plain"}
+                    response = requests.post(url, data=clean_seq, headers=headers, timeout=60)
                     
                     if response.status_code == 200:
                         pdb_data = response.text
@@ -466,10 +468,10 @@ with tab_esmfold:
                         
                         view = py3Dmol.view(width=850, height=500)
                         view.addModel(pdb_data, 'pdb')
-                        view.setStyle({'cartoon': {'color': 'spectrum'}})
+                        view.setStyle({'cartoon': {'colorscheme': 'spectrum'}})
                         view.zoomTo()
-                        # FIX: removeChild Hatasını Önleyen Unique Key
-                        showmol(view, height=500, width=850, key="esmfold_3dmol_viewer")
+                        # FIX: showmol 'key' parametresi kaldırıldı
+                        showmol(view, height=500, width=850)
 
                         st.download_button(
                             label="📥 Üretilen .PDB Dosyasını İndir",
@@ -479,7 +481,7 @@ with tab_esmfold:
                             key="download_pdb_btn"
                         )
                     else:
-                        st.error(f"❌ ESMFold Servis Hatası (HTTP {response.status_code}). Lütfen dizinizi kontrol edin.")
+                        st.error(f"❌ ESMFold Servis Hatası (HTTP {response.status_code}). Servis aşırı yüklü veya dizi geçersiz olabilir.")
                 except Exception as e:
                     st.error(f"❌ Bağlantı Hatası: {str(e)}")
 
