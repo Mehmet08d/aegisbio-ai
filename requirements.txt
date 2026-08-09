@@ -7,4 +7,4 @@ py3Dmol
 stmol
 ipywidgets
 ipython_genutils
-openai>=1.10.0
+google-genai
