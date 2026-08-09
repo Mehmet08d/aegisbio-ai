@@ -1,8 +1,0 @@
-streamlit
-biopython
-plotly
-pandas
-openai
-requests
-py3Dmol
-st3dmol
