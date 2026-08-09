@@ -8,6 +8,7 @@ import requests
 import py3Dmol
 from stmol import showmol
 import google.generativeai as genai
+import time
 
 # --- SAYFA KONFİGÜRASYONU ---
 st.set_page_config(
@@ -16,6 +17,16 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
+# Session State Başlatma
+if "chat_messages" not in st.session_state:
+    st.session_state["chat_messages"] = [
+        {"role": "assistant", "content": "Merhaba! Ben Mgen Analysis Biyo-Danışmanıyım. Biyoinformatik analizleriniz, ESMFold 3D modelleriniz veya mitokondriyal genetik hakkındaki sorularınızı yanıtlamaya hazırım."}
+    ]
+if "son_analiz" not in st.session_state:
+    st.session_state["son_analiz"] = "Kullanıcı henüz bir biyoinformatik analiz çalıştırmadı."
+if "son_sequence" not in st.session_state:
+    st.session_state["son_sequence"] = "MTPMRTINPLMKLINHSFIDLPTPSNISAWWNFGSLLGACLILQITTGLFLAMHYSPDASTAFSSIAHITRDVNYGWIRYLHANGASMFFICLFLHIGRGLYYGSFLYSETWNIGIILLLATMATAFMGYVLPWGQMSFWGATVITNLFSAIPYIGTNLVEWIWGGFSVDKATLTRFFAFHFILPFIMALAAVHLTFLHETGSNNPTGLNSDSDKIPFHPYYTIKDILGALLLLALLLLTLFSPDLLGDPDNYTLANPLNTPPHIKPEWYFLFAYTILRSVPNKLGGVLALLLSILILIVIPILHTSKQRSMMFRPLSQCLFWLLTADLLTLTWIGGQPVEHPYITIGQMASILYFSIILILMPISGIIEDKMLKWN"
 
 # --- GLASSMORPHISM UI TASARIMI ---
 st.markdown("""
@@ -312,17 +323,17 @@ def recorddan_protein_ayikla(record, gen_adi):
     return None
 
 def dizileri_hizala(seq1, seq2):
-    """Biopython PairwiseAligner ile hizalama - Güvenli String Çıktı Dönüşümü"""
+    """Biopython PairwiseAligner ile güvenli global hizalama"""
     try:
         aligner = PairwiseAligner()
         aligner.mode = 'global'
         alignments = aligner.align(seq1, seq2)
         if len(alignments) > 0:
-            alignment = alignments[0]
-            # Biopython güncel sürümlerde hizalama dizelerini doğrudan string formatlama ile alırız
-            aligned_str = str(alignment).splitlines()
-            if len(aligned_str) >= 3:
-                return aligned_str[0], aligned_str[2]
+            aligned = alignments[0]
+            # aligned.sequences[0] ve aligned.sequences[1] üzerinden güvenli string alma
+            aligned_seq1 = "".join([seq1[i] if i != -1 else "-" for i in aligned.indices[0]])
+            aligned_seq2 = "".join([seq2[j] if j != -1 else "-" for j in aligned.indices[1]])
+            return aligned_seq1, aligned_seq2
     except Exception:
         pass
     return seq1, seq2
@@ -529,7 +540,7 @@ with tab_esmfold:
     st.markdown("### 🔮 ESMFold API (Yapay Zeka ile Anlık 3D Protein Katlanması)")
     st.caption("Epitop veya amino asit dizisinden yapay zeka ile PDB üretimi ve py3Dmol entegrasyonu.")
 
-    varsayilan_dizi = st.session_state.get("son_sequence", "MTPMRTINPLMKLINHSFIDLPTPSNISAWWNFGSLLGACLILQITTGLFLAMHYSPDASTAFSSIAHITRDVNYGWIRYLHANGASMFFICLFLHIGRGLYYGSFLYSETWNIGIILLLATMATAFMGYVLPWGQMSFWGATVITNLFSAIPYIGTNLVEWIWGGFSVDKATLTRFFAFHFILPFIMALAAVHLTFLHETGSNNPTGLNSDSDKIPFHPYYTIKDILGALLLLALLLLTLFSPDLLGDPDNYTLANPLNTPPHIKPEWYFLFAYTILRSVPNKLGGVLALLLSILILIVIPILHTSKQRSMMFRPLSQCLFWLLTADLLTLTWIGGQPVEHPYITIGQMASILYFSIILILMPISGIIEDKMLKWN")
+    varsayilan_dizi = st.session_state.get("son_sequence", "")
     
     user_fasta = st.text_area("Amino Asit Dizisi (FASTA / Düz Metin)", value=varsayilan_dizi, height=120, key="fasta_input")
 
@@ -583,11 +594,6 @@ with tab_ai_bot:
     except Exception:
         pass
 
-    if "chat_messages" not in st.session_state:
-        st.session_state["chat_messages"] = [
-            {"role": "assistant", "content": "Merhaba! Ben Mgen Analysis Google Gemini Biyo-Danışmanıyım. Biyoinformatik analizleriniz, ESMFold 3D modelleriniz, mitokondriyal genetik veya de-extinction projeleriniz hakkındaki sorularınızı yanıtlamaya hazırım."}
-        ]
-
     for msg in st.session_state["chat_messages"]:
         st.chat_message(msg["role"]).write(msg["content"])
 
@@ -613,7 +619,6 @@ with tab_ai_bot:
                     system_instruction=system_instruction
                 )
 
-                # Geçmiş sohbet mesajlarını Gemini formatına dönüştür
                 history = []
                 for m in st.session_state["chat_messages"][:-1]:
                     role = "user" if m["role"] == "user" else "model"
