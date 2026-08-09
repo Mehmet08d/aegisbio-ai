@@ -7,7 +7,7 @@ import pandas as pd
 import requests
 import py3Dmol
 from stmol import showmol
-import openai
+import google.generativeai as genai
 
 # --- SAYFA KONFİGÜRASYONU ---
 st.set_page_config(
@@ -129,7 +129,6 @@ AMINO_ACID_PROPERTIES = {
     'V': {'charge': 0, 'hydrophobicity': 4.2, 'size': 140.0, 'helix_propensity': 1.06}
 }
 
-# 100+ CANLI İÇEREN KAPSAMLI GENOM VERİTABANI
 HAZIR_TURLER = {
     # --- MEMELİLER: KESELİLER & MARSUPIALS ---
     "🦘 Numbat (Myrmecobius fasciatus) [Taşıyıcı Konak]": "NC_011949.1",
@@ -193,7 +192,7 @@ HAZIR_TURLER = {
     "🦛 Hipopotam (Hippopotamus amphibius)": "NC_000889.1",
     "🦏 Beyaz Gergedan (Ceratotherium simum)": "NC_001808.1",
     "🦏 Siyah Gergedan (Diceros bicornis)": "NC_012682.1",
-    "🦓 Bayağı Zebra (Equus quagga)": "NC_008777.1",
+    "ZE BRA Bayağı Zebra (Equus quagga)": "NC_008777.1",
     "🐴 Evcil At (Equus caballus)": "NC_001640.1",
     "🐴 Przewalski Atı (Equus przewalskii)": "NC_024223.1",
     "🦣 Mağara Bizonu (Bison priscus) [Tükenmiş]": "NC_027233.1",
@@ -266,7 +265,7 @@ st.markdown("""
         <span class="academic-badge">Institutional Genomic Suite v4.0 Enterprise</span>
         <h1 class="brand-title">Mgen Analysis</h1>
         <p style='color: #94a3b8; font-size: 1.1rem; max-width: 800px; margin: 0 auto;'>
-            Mitonuclear Incompatibility Engine, De-Extinction Genomic Analytics, ESMFold 3D Prediction & Universal Bio-LLM
+            Mitonuclear Incompatibility Engine, De-Extinction Genomic Analytics, ESMFold 3D Prediction & Universal Gemini AI Bio-LLM
         </p>
     </div>
 """, unsafe_allow_html=True)
@@ -276,7 +275,7 @@ tab_analiz, tab_3d_view, tab_esmfold, tab_ai_bot = st.tabs([
     "🚀 Biyoinformatik Analiz Engine", 
     "🧬 py3Dmol PDB Görselleştirici", 
     "🔮 ESMFold Anlık 3D Yapı Tahmini",
-    "🤖 AI Biyo-Danışman (7/24 Aktif)"
+    "🤖 Gemini AI Biyo-Danışman"
 ])
 
 # ==========================================
@@ -313,15 +312,17 @@ def recorddan_protein_ayikla(record, gen_adi):
     return None
 
 def dizileri_hizala(seq1, seq2):
+    """Biopython PairwiseAligner ile hizalama - Güvenli String Çıktı Dönüşümü"""
     try:
         aligner = PairwiseAligner()
         aligner.mode = 'global'
         alignments = aligner.align(seq1, seq2)
         if len(alignments) > 0:
-            aligned = alignments[0]
-            s1_aligned = "".join([seq1[i] if i is not None else "-" for i in aligned.indices[0]])
-            s2_aligned = "".join([seq2[j] if j is not None else "-" for j in aligned.indices[1]])
-            return s1_aligned, s2_aligned
+            alignment = alignments[0]
+            # Biopython güncel sürümlerde hizalama dizelerini doğrudan string formatlama ile alırız
+            aligned_str = str(alignment).splitlines()
+            if len(aligned_str) >= 3:
+                return aligned_str[0], aligned_str[2]
     except Exception:
         pass
     return seq1, seq2
@@ -570,21 +571,21 @@ with tab_esmfold:
                     st.error(f"❌ Bağlantı Hatası: {str(e)}")
 
 # ==========================================
-# TAB 4: EVRENSEL GPT-4o BİYO-DANIŞMAN
+# TAB 4: GOOGLE GEMINI AI BİYO-DANIŞMAN
 # ==========================================
 with tab_ai_bot:
-    st.markdown("### 🤖 Mgen Analysis Evrensel Biyo-LLM Danışmanı")
-    st.caption("Genetik mühendisliği, CRISPR, de-extinction veya genel moleküler biyoloji sorularınızı sorabilirsiniz.")
+    st.markdown("### 🤖 Mgen Analysis Google Gemini AI Biyo-Danışmanı")
+    st.caption("Genetik mühendisliği, CRISPR, de-extinction veya genel moleküler biyoloji sorularınızı Google Gemini ile yanıtlayın.")
 
-    api_key = None
+    gemini_api_key = None
     try:
-        api_key = st.secrets.get("OPENAI_API_KEY", None)
+        gemini_api_key = st.secrets.get("GEMINI_API_KEY", None)
     except Exception:
         pass
 
     if "chat_messages" not in st.session_state:
         st.session_state["chat_messages"] = [
-            {"role": "assistant", "content": "Merhaba! Ben Mgen Analysis Biyo-Danışmanıyım. Biyoinformatik analizleriniz, ESMFold 3D modelleriniz, mitokondriyal genetik veya de-extinction projeleriniz hakkındaki sorularınızı yanıtlamaya hazırım."}
+            {"role": "assistant", "content": "Merhaba! Ben Mgen Analysis Google Gemini Biyo-Danışmanıyım. Biyoinformatik analizleriniz, ESMFold 3D modelleriniz, mitokondriyal genetik veya de-extinction projeleriniz hakkındaki sorularınızı yanıtlamaya hazırım."}
         ]
 
     for msg in st.session_state["chat_messages"]:
@@ -596,9 +597,10 @@ with tab_ai_bot:
 
         analiz_ozet = st.session_state.get("son_analiz", "Kullanıcı henüz bir biyoinformatik analiz çalıştırmadı.")
 
-        if api_key:
+        if gemini_api_key:
             try:
-                client = openai.OpenAI(api_key=api_key)
+                genai.configure(api_key=gemini_api_key)
+                
                 system_instruction = (
                     "Sen Mgen Analysis platformunda görev yapan senior seviye bir Biyoinformatik Uzmanı ve Sentetik Biyoloji Danışmanısın. "
                     "Kullanıcı sana genetik, biyofizik, de-extinction, CRISPR, protein katlanması, mitokondriyal DNA veya genel bilim ile ilgili HER TÜRLÜ soruyu sorabilir. "
@@ -606,26 +608,31 @@ with tab_ai_bot:
                     f"Kullanıcının mevcut analiz bağlamı: '{analiz_ozet}'"
                 )
 
-                messages_for_api = [{"role": "system", "content": system_instruction}]
-                for m in st.session_state["chat_messages"]:
-                    messages_for_api.append({"role": m["role"], "content": m["content"]})
+                model = genai.GenerativeModel(
+                    model_name="gemini-1.5-pro",
+                    system_instruction=system_instruction
+                )
 
-                with st.spinner("Mgen Analysis AI düşünüyor ve yanıtı hazırlıyor..."):
-                    response = client.chat.completions.create(
-                        model="gpt-4o",
-                        messages=messages_for_api,
-                        temperature=0.2
-                    )
-                    reply = response.choices[0].message.content
+                # Geçmiş sohbet mesajlarını Gemini formatına dönüştür
+                history = []
+                for m in st.session_state["chat_messages"][:-1]:
+                    role = "user" if m["role"] == "user" else "model"
+                    history.append({"role": role, "parts": [m["content"]]})
+
+                chat = model.start_chat(history=history)
+
+                with st.spinner("Gemini AI düşünüyor ve yanıtı hazırlıyor..."):
+                    response = chat.send_message(user_prompt)
+                    reply = response.text
 
             except Exception as e:
-                reply = f"❌ API Hatası: {str(e)}"
+                reply = f"❌ Gemini API Hatası: {str(e)}"
         else:
             reply = (
-                "⚠️ **OpenAI API Anahtarı Bulunamadı!**\n\n"
-                "Yapay zekanın evrensel sorulara eksiksiz yanıt verebilmesi için `.streamlit/secrets.toml` "
-                "dosyanıza veya Streamlit Cloud üzerindeki Secrets paneline API anahtarınızı tanımlamalısınız:\n\n"
-                "```toml\nOPENAI_API_KEY = 'sk-proj-...' \n```\n\n"
+                "⚠️ **Google Gemini API Anahtarı Bulunamadı!**\n\n"
+                "Yapay zekanın evrensel sorulara yanıt verebilmesi için `.streamlit/secrets.toml` "
+                "dosyanıza veya Streamlit Cloud Secrets paneline API anahtarınızı tanımlamalısınız:\n\n"
+                "```toml\nGEMINI_API_KEY = 'AIzaSy...'\n```\n\n"
                 f"**Mevcut Analiz Durumunuz:** {analiz_ozet}"
             )
 
