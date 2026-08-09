@@ -3,12 +3,19 @@ from Bio import Entrez, SeqIO
 from Bio.Align import PairwiseAligner
 from Bio.Align import substitution_matrices
 import plotly.express as px
+import plotly.graph_objects as go
 import pandas as pd
 import requests
 import py3Dmol
 from stmol import showmol
-import google.generativeai as genai
 import time
+
+# Google Generative AI SDK Güvenli İçe Aktarımı
+try:
+    import google.generativeai as genai
+    HAS_GENAI = True
+except ImportError:
+    HAS_GENAI = False
 
 # --- SAYFA KONFİGÜRASYONU ---
 st.set_page_config(
@@ -18,7 +25,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Session State Başlatma
+# --- SESSION STATE BAŞLATMA ---
 if "chat_messages" not in st.session_state:
     st.session_state["chat_messages"] = [
         {"role": "assistant", "content": "Merhaba! Ben Mgen Analysis Biyo-Danışmanıyım. Biyoinformatik analizleriniz, ESMFold 3D modelleriniz veya mitokondriyal genetik hakkındaki sorularınızı yanıtlamaya hazırım."}
@@ -141,125 +148,243 @@ AMINO_ACID_PROPERTIES = {
 }
 
 HAZIR_TURLER = {
-    # --- MEMELİLER: KESELİLER & MARSUPIALS ---
-    "🦘 Numbat (Myrmecobius fasciatus) [Taşıyıcı Konak]": "NC_011949.1",
-    "🐅 Tasman Kaplanı / Thylacine (Thylacinus cynocephalus) [Tükenmiş]": "NC_028319.1",
-    "🦘 Kızıl Kanguru (Macropus rufus)": "NC_023522.1",
-    "🐨 Koala (Phascolarctos cinereus)": "NC_021975.1",
-    "🦡 Tasman Canavarı (Sarcophilus harrisii)": "NC_013770.1",
-    "🦘 Vombat (Vombatus ursinus)": "NC_003322.1",
-    "🦔 Opossum (Didelphis virginiana)": "NC_001610.1",
-    "🦘 Şeker Planörü (Petaurus breviceps)": "NC_013606.1",
-
-    # --- MEMELİLER: HORTUMLULAR & DE-EXTINCTION ---
-    "🐘 Asya Fili (Elephas maximus) [Taşıyıcı Konak]": "NC_005129.2",
-    "🐘 Afrika Savan Fili (Loxodonta africana)": "NC_000934.1",
-    "🐘 Afrika Orman Fili (Loxodonta cyclotis)": "NC_013850.1",
+    # ==========================================
+    # 🦖 1. NESLİ TÜKENMİŞ & DE-EXTINCTION ADAYLARI
+    # ==========================================
     "🦣 Yünlü Mamut (Mammuthus primigenius) [Tükenmiş]": "NC_007596.2",
     "🦣 Kolombiya Mamutu (Mammuthus columbi) [Tükenmiş]": "NC_015529.1",
-    "🦣 Düz Dişli Fil (Palaeoloxodon antiquus) [Tükenmiş]": "NC_034825.1",
-    "🦣 Amerikan Mastodonu (Mammut americanum) [Tükenmiş]": "NC_009592.1",
-
-    # --- MEMELİLER: PRIMATLAR & İNSANSILAR ---
-    "👤 Modern İnsan (Homo sapiens)": "NC_012920.1",
-    "🦴 Neandertal İnsanı (Homo neanderthalensis) [Tükenmiş]": "NC_011137.1",
-    "🦴 Denisova İnsanı (Denisova hominin) [Tükenmiş]": "NC_013993.1",
-    "🐒 Şempanze (Pan troglodytes)": "NC_001643.1",
-    "🐒 Bonobo (Pan paniscus)": "NC_001644.1",
-    "🦍 Batı Gorili (Gorilla gorilla)": "NC_011120.1",
-    "🦍 Doğu Gorili (Gorilla beringei)": "NC_011121.1",
-    "🦧 Sumatra Orangutanı (Pongo abelii)": "NC_002083.1",
-    "🦧 Borneo Orangutanı (Pongo pygmaeus)": "NC_001646.1",
-    "🐒 Şebek / Rhesus Maymunu (Macaca mulatta)": "NC_005943.1",
-    "🐒 Anubis Babunu (Papio anubis)": "NC_001992.1",
-
-    # --- MEMELİLER: ETÇİLLER & KEDİGİLLER / KÖPEKGİLLER ---
+    "🦣 Step Mamutu (Mammuthus trogontherii) [Tükenmiş]": "NC_025796.1",
+    "🦴 Amerika Mastodonu (Mammut americanum) [Tükenmiş]": "NC_009592.1",
+    "🐅 Tasman Kaplanı / Thylacine (Thylacinus cynocephalus) [Tükenmiş]": "NC_028319.1",
     "⚔️ Kılıç Dişli Kaplan (Smilodon fatalis) [Tükenmiş]": "NC_030752.1",
-    "🦁 Aslan (Panthera leo)": "NC_028321.1",
-    "🐅 Kaplan (Panthera tigris)": "NC_010642.1",
-    "🐆 Kar Leoparı (Panthera uncia)": "NC_010638.1",
-    "🐆 Jaguar (Panthera onca)": "NC_025262.1",
-    "🐆 Pars / Leopar (Panthera pardus)": "NC_010641.1",
-    "🐆 Çita (Acinonyx jubatus)": "NC_005212.1",
-    "ค Puma (Puma concolor)": "NC_016470.1",
-    "🐱 Evcil Kedi (Felis catus)": "NC_001700.1",
-    "🐺 Gri Kurt (Canis lupus)": "NC_009686.1",
-    "🐕 Evcil Köpek (Canis lupus familiaris)": "NC_002008.4",
-    "🦊 Kızıl Tilki (Vulpes vulpes)": "NC_008434.1",
-    "🦊 Kutup Tilkisi (Vulpes lagopus)": "NC_026528.1",
-    "🦮 Çakal (Canis aureus)": "NC_028328.1",
-    "🦮 Dingo (Canis lupus dingo)": "NC_011211.1",
-    "🐻 Kutup Ayısı (Ursus maritimus)": "NC_009692.1",
-    "🐻 Bozayı (Ursus arctos)": "NC_003427.1",
-    "🐻 Mağara Ayısı (Ursus spelaeus) [Tükenmiş]": "NC_011112.1",
-    "🐼 Dev Panda (Ailuropoda melanoleuca)": "NC_009484.1",
-
-    # --- MEMELİLER: DENİZ MEMELİLERİ & TOYNAKLILAR ---
-    "🐋 Steller Deniz İneği (Hydrodamalis gigas) [Tükenmiş]": "NC_045268.1",
-    "🦭 Dugong (Dugong dugon) [Taşıyıcı Konak]": "NC_003314.1",
-    "🐋 Mavi Balina (Balaenoptera musculus)": "NC_001601.1",
-    "🐬 Adayolu Yunusu (Tursiops truncatus)": "NC_012059.1",
-    "🐋 Katil Balina / Orka (Orcinus orca)": "NC_023889.1",
-    "🦛 Hipopotam (Hippopotamus amphibius)": "NC_000889.1",
-    "🦏 Beyaz Gergedan (Ceratotherium simum)": "NC_001808.1",
-    "🦏 Siyah Gergedan (Diceros bicornis)": "NC_012682.1",
-    "ZE BRA Bayağı Zebra (Equus quagga)": "NC_008777.1",
-    "🐴 Evcil At (Equus caballus)": "NC_001640.1",
-    "🐴 Przewalski Atı (Equus przewalskii)": "NC_024223.1",
-    "🦣 Mağara Bizonu (Bison priscus) [Tükenmiş]": "NC_027233.1",
-    "🦬 Yak (Bos mutus)": "NC_018519.1",
-
-    # --- MEMELİLER: KEMİRGENLER & DİĞER İLGİNÇ TÜRLER ---
-    "🦔 Çıplak Kör Fare (Heterocephalus glaber)": "NC_015112.1",
-    "🦫 Kunduz (Castor fiber)": "NC_028625.1",
-    "🦔 Kirpi (Erinaceus europaeus)": "NC_002080.1",
-    "🦇 Büyük Yarasa (Pteropus neohibernicus)": "NC_012840.1",
-    "🦥 Üç Parmaklı Tembel Hayvan (Bradypus tridactylus)": "NC_006922.1",
-    "🦔 Karıncayiyen (Myrmecophaga tridactyla)": "NC_007533.1",
-
-    # --- KUŞLAR & DE-EXTINCTION AVIAN SPECIES ---
     "🦤 Dodo Kuşu (Raphus cucullatus) [Tükenmiş]": "NC_008263.1",
     "🕊️ Yolcu Güvercini (Ectopistes migratorius) [Tükenmiş]": "NC_026723.1",
-    "🕊️ Şeritli Güvercin (Patagioenas fasciata) [Taşıyıcı Konak]": "NC_028503.1",
-    "🕊️ Kaya Güvercini (Columba livia)": "NC_013978.1",
     "🦅 Dev Moa (Dinornis robustus) [Tükenmiş]": "NC_002674.1",
-    "🦅 Fil Kuşu (Aepyornis maximus) [Tükenmiş]": "NC_026729.1",
-    "🐧 Büyük Auk (Pinguinus impennis) [Tükenmiş]": "NC_030228.1",
-    "🦅 İmparator Penguen (Aptenodytes forsteri)": "NC_023091.1",
-    "🦅 Gökdoğan Şahini (Falco peregrinus)": "NC_029348.1",
+    "🦅 Küçük Çalı Moası (Anomalopteryx didiformis) [Tükenmiş]": "NC_002773.1",
+    "🦅 Haast Kartalı (Hieraaetus moorei) [Tükenmiş]": "NC_041113.1",
+    "🦴 Neandertal İnsanı (Homo neanderthalensis) [Tükenmiş]": "NC_011137.1",
+    "🦴 Denisova İnsanı (Denisova hominin) [Tükenmiş]": "NC_013993.1",
+    "🦛 Madagaskar Cüce Hipopotamı (Hippopotamus lemerlei) [Tükenmiş]": "NC_025287.1",
+    "🦬 Mağara Ayısı (Ursus spelaeus) [Tükenmiş]": "NC_011112.1",
+    "🦁 Mağara Aslanı (Panthera spelaea) [Tükenmiş]": "NC_028320.1",
+    "🦏 Yünlü Gergedan (Coelodonta antiquitatis) [Tükenmiş]": "NC_012681.1",
+    "🦬 Steller Deniz İneği (Hydrodamalis gigas) [Tükenmiş]": "NC_031350.1",
+    "🦡 Dev Tembel Hayvan (Mylodon darwinii) [Tükenmiş]": "NC_037466.1",
+    "🦡 Glyptodon (Glyptodon reticulatus) [Tükenmiş]": "NC_028520.1",
+    "🦓 Quagga (Equus quagga quagga) [Tükenmiş]": "NC_008129.1",
+    "🦌 Dev İrlanda Geyiği (Megaloceros giganteus) [Tükenmiş]": "NC_025780.1",
+    "🐂 Aurochs / Yaban Öküzü (Bos primigenius) [Tükenmiş]": "NC_013996.1",
+    "🦆 Labrador Ördeği (Camptorhynchus labradorius) [Tükenmiş]": "NC_039655.1",
+    "🦜 Carolina Papağanı (Conuropsis carolinensis) [Tükenmiş]": "NC_037930.1",
+    "🐧 Büyük Auk / Penguen (Pinguinus impennis) [Tükenmiş]": "NC_038234.1",
+    "🦡 Falkland Tilkisi (Dusicyon australis) [Tükenmiş]": "NC_028542.1",
+    "🐺 Japon Kurdu (Canis lupus hodophilax) [Tükenmiş]": "NC_039804.1",
+    "🦅 Fil Kuşu (Aepyornis maximus) [Tükenmiş]": "NC_026821.1",
+    "🦅 Muller Fil Kuşu (Mullerornis agilis) [Tükenmiş]": "NC_026820.1",
+
+    # ==========================================
+    # 👤 2. PRİMATLAR & İNSANSILAR
+    # ==========================================
+    "👤 Modern İnsan (Homo sapiens)": "NC_012920.1",
+    "🐒 Şempanze (Pan troglodytes)": "NC_001643.1",
+    "🐒 Bonobo (Pan paniscus)": "NC_001644.1",
+    "🦍 Batan Kıyı Gorili (Gorilla gorilla)": "NC_001645.1",
+    "🦍 Doğu Gorili (Gorilla beringei)": "NC_011120.1",
+    "🦧 Sumatra Orangutanı (Pongo abelii)": "NC_002083.1",
+    "🦧 Borneo Orangutanı (Pongo pygmaeus)": "NC_001646.1",
+    "🐒 Ak Yanaklı Gibon (Nomascus leucogenys)": "NC_002082.1",
+    "🐒 Lar Gibonu (Hylobates lar)": "NC_002081.1",
+    "🐒 Şebek / Rhesus Maymunu (Macaca mulatta)": "NC_005943.1",
+    "🐒 Şebek / Yengeç Yiyen Maymun (Macaca fascicularis)": "NC_000868.1",
+    "🐒 Anubis Babunu (Papio anubis)": "NC_001992.1",
+    "🐒 Hamadryas Babunu (Papio hamadryas)": "NC_008218.1",
+    "🐒 Yeşil Maymun (Chlorocebus sabaeus)": "NC_008066.1",
+    "🐒 Altın Maymun (Rhinopithecus roxellana)": "NC_008219.1",
+    "🐒 Ortak İpek Maymun / Marmoset (Callithrix jacchus)": "NC_002556.1",
+    "🐒 Sincap Maymunu (Saimiri sciureus)": "NC_008217.1",
+    "🐒 Beyaz Yüzlü Capuchin (Cebus capucinus)": "NC_028540.1",
+    "🐒 Halka Kuyruklu Lemur (Lemur catta)": "NC_004025.1",
+    "🐒 Ay-ay / Aye-aye (Daubentonia madagascariensis)": "NC_000898.1",
+
+    # ==========================================
+    # 🦁 3. ETÇİLLER (ETÇİL MEMELİLER)
+    # ==========================================
+    "🦁 Aslan (Panthera leo)": "NC_028321.1",
+    "🐅 Kaplan (Panthera tigris)": "NC_010642.1",
+    "🐆 Leopar (Panthera pardus)": "NC_010641.1",
+    "🐆 Kar Leoparı (Panthera uncia)": "NC_010638.1",
+    "🐆 Yaguar (Panthera onca)": "NC_010640.1",
+    "🐆 Çita (Acinonyx jubatus)": "NC_005212.1",
+    "🐱 Puma (Puma concolor)": "NC_016470.1",
+    "🐱 Vaşak (Lynx lynx)": "NC_028323.1",
+    "🐱 Evcil Kedi (Felis catus)": "NC_001700.1",
+    "🐱 Yaban Kedisi (Felis silvestris)": "NC_016433.1",
+    "🐺 Gri Kurt (Canis lupus)": "NC_009686.1",
+    "🐕 Evcil Köpek (Canis lupus familiaris)": "NC_002008.4",
+    "🦮 Çakal (Canis aureus)": "NC_028328.1",
+    "🦊 Kızıl Tilki (Vulpes vulpes)": "NC_008434.1",
+    "🦊 Kutup Tilkisi (Vulpes lagopus)": "NC_026529.1",
+    "🦮 Kır Kurdu / Kayot (Canis latrans)": "NC_013445.1",
+    "🦮 Dingo (Canis lupus dingo)": "NC_011211.1",
+    "🐻 Boz Ayı (Ursus arctos)": "NC_003427.1",
+    "🐻 Kutup Ayısı (Ursus maritimus)": "NC_003428.1",
+    "🐻 Amerikan Siyah Ayısı (Ursus americanus)": "NC_000892.1",
+    "🐼 Dev Panda (Ailuropoda melanoleuca)": "NC_009484.1",
+    "🦝 Rakun (Procyon lotor)": "NC_009101.1",
+    "🦦 Su Samuru (Lutra lutra)": "NC_011358.1",
+    "🦡 Porsuk (Meles meles)": "NC_010298.1",
+    "🦡 Kokarca (Mephitis mephitis)": "NC_016462.1",
+    "🦔 Benekli Sırtlan (Crocuta crocuta)": "NC_020638.1",
+    "🦔 Çizgili Sırtlan (Hyaena hyaena)": "NC_020637.1",
+    "🦡 Mirket (Suricata suricatta)": "NC_028327.1",
+
+    # ==========================================
+    # 🐘 4. OTLUÇILLAR, HOOFED & HORTUMLULAR
+    # ==========================================
+    "🐘 Asya Fili (Elephas maximus) [Taşıyıcı Konak]": "NC_005129.2",
+    "🐘 Afrika Savan Fili (Loxodonta africana)": "NC_000934.1",
+    "🐘 Afrika Orman Fili (Loxodonta cyclotis)": "NC_006613.1",
+    "🦏 Beyaz Gergedan (Ceratotherium simum)": "NC_001808.1",
+    "🦏 Siyah Gergedan (Diceros bicornis)": "NC_012682.1",
+    "🦏 Hint Gergedanı (Rhinoceros unicornis)": "NC_001779.1",
+    "🦛 Su Aygırı (Hippopotamus amphibius)": "NC_000889.1",
+    "🦒 Zürafa (Giraffa camelopardalis)": "NC_020610.1",
+    "🦒 Okapi (Okapia johnstoni)": "NC_020609.1",
+    "ZEBRA Yaban Eşeği / Zebra (Equus quagga)": "NC_008133.1",
+    "🐴 Evcil At (Equus caballus)": "NC_001640.1",
+    "🐴 Przewalski Atı (Equus przewalskii)": "NC_008220.1",
+    "🫏 Yaban Eşeği (Equus africanus)": "NC_007602.1",
+    "🐫 Hörgüçlü Deve (Camelus bactrianus)": "NC_009628.1",
+    "Tek Hörgüçlü Deve (Camelus dromedarius)": "NC_009849.1",
+    "🦙 Lama (Lama glama)": "NC_012108.1",
+    "🦙 Alpaka (Vicugna pacos)": "NC_012109.1",
+    "🐂 Sığır / İnek (Bos taurus)": "NC_006853.1",
+    "🐂 Yak (Bos mutus)": "NC_011221.1",
+    "🦬 Amerikan Bizonu (Bison bison)": "NC_012346.1",
+    "🐐 Yaban Keçisi (Capra aegagrus)": "NC_020680.1",
+    "🐐 Evcil Keçi (Capra hircus)": "NC_005044.2",
+    "🐑 Evcil Koyun (Ovis aries)": "NC_001941.1",
+    "🦌 Kızıl Geyik (Cervus elaphus)": "NC_007704.1",
+    "🦌 Sığın / Ren Geyiği (Rangifer tarandus)": "NC_007703.1",
+    "🦌 Bataklık Geyiği (Alces alces)": "NC_020681.1",
+    "🐖 Yaban Domuzu (Sus scrofa)": "NC_000845.1",
+
+    # ==========================================
+    # 🐋 5. DENİZ MEMELİLERİ (BALİNALAR & FOKLAR)
+    # ==========================================
+    "Mavi Balina (Balaenoptera musculus)": "NC_001601.1",
+    "🐋 Fin Balinası (Balaenoptera physalus)": "NC_001321.1",
+    "🐋 Kambur Balina (Megaptera novaeangliae)": "NC_006927.1",
+    "🐋 Katil Balina / Orka (Orcinus orca)": "NC_023889.1",
+    "🐬 Mutur / Şişe Burunlu Yunus (Tursiops truncatus)": "NC_012059.1",
+    "🐬 Çizgili Yunus (Stenella coeruleoalba)": "NC_012061.1",
+    "🐋 İspermecet Balinası (Physeter macrocephalus)": "NC_002504.1",
+    "🐋 Deniz Tacir Balinası / Narval (Monodon monoceros)": "NC_005279.1",
+    "🐋 Beyaz Balina / Beluga (Delphinapterus leucas)": "NC_001325.1",
+    "🦭 Bıyıklı Fok (Erignathus barbatus)": "NC_002812.1",
+    "🦭 Gri Fok (Halichoerus grypus)": "NC_001602.1",
+    "🦭 Deniz Fili (Mirounga leonina)": "NC_002307.1",
+    "🦭 Deniz Aslanı (Zalophus californianus)": "NC_004020.1",
+    "🦭 Deniz Aygırı / Walrus (Odobenus rosmarus)": "NC_004021.1",
+    "🦛 Manati (Trichechus manatus)": "NC_001291.1",
+
+    # ==========================================
+    # 🦘 6. KESELİLER & TEK DELİKLİLER
+    # ==========================================
+    "🦘 Numbat (Myrmecobius fasciatus) [Taşıyıcı Konak]": "NC_011949.1",
+    "🦘 Kızıl Kanguru (Macropus rufus)": "NC_023522.1",
+    "🦘 Doğu Gri Kangurusu (Macropus giganteus)": "NC_020600.1",
+    "🐨 Koala (Phascolarctos cinereus)": "NC_021975.1",
+    "🦡 Tasman Canavarı (Sarcophilus harrisii)": "NC_013770.1",
+    "🦡 Kuzey Vombatı (Lasiorhinus latifrons)": "NC_003322.1",
+    "🦡 Şeker Planörü (Petaurus breviceps)": "NC_024602.1",
+    "🦡 Virginia Opossumu (Didelphis virginiana)": "NC_001610.1",
+    "🥚 Ornitorenk (Ornithorhynchus anatinus)": "NC_000891.1",
+    "🥚 Dikenli Karıncayiyen / Ekidne (Tachyglossus aculeatus)": "NC_003321.1",
+
+    # ==========================================
+    # 🦅 7. KUŞLAR
+    # ==========================================
+    "🦅 Kaya Kartalı (Aquila chrysaetos)": "NC_027656.1",
     "🦅 Kel Kartal (Haliaeetus leucocephalus)": "NC_008550.1",
-    "🦩 Şili Flamingosu (Phoenicopterus chilensis)": "NC_027271.1",
-    "🐔 Evcil Tavuk (Gallus gallus)": "NC_001323.1",
+    "🦅 Bayağı Doğan (Falco peregrinus)": "NC_029348.1",
+    "🦉 Bayağı Baykuş (Tyto alba)": "NC_028435.1",
+    "🦉 Puhu Baykuşu (Bubo bubo)": "NC_024285.1",
+    "🦅 Bayağı Şahin (Buteo buteo)": "NC_028438.1",
+    "🐧 İmparator Penguen (Aptenodytes forsteri)": "NC_025539.1",
+    "🐧 Adélie Pengueni (Pygoscelis adeliae)": "NC_004418.1",
+    "🦩 Flamingo (Phoenicopterus roseus)": "NC_028442.1",
     "🦆 Yeşilbaş Ördek (Anas platyrhynchos)": "NC_009684.1",
-    "🦜 Kakapo (Strigops habroptilus)": "NC_005931.1",
+    "🦤 Deve Kuşu (Struthio camelus)": "NC_002785.1",
+    "🦤 Emu (Dromaius novaehollandiae)": "NC_002784.1",
+    "🦤 Kaspian Tepeli Devekuşu / Kasovar (Casuarius casuarius)": "NC_002783.1",
+    "🦤 Kiwi Kuşu (Apteryx haastii)": "NC_002782.1",
+    "🕊️ Kaya Güvercini (Columba livia)": "NC_013978.1",
+    "🐓 Evcil Tavuk (Gallus gallus)": "NC_001323.1",
+    "🪿 Yaban Kazı (Anser anser)": "NC_011196.1",
+    "🦚 Bayağı Tavuskuşu (Pavo cristatus)": "NC_018043.1",
+    "🦜 Kakapo Papağanı (Strigops habroptilus)": "NC_005932.1",
+    "🦜 Kea Papağanı (Nestor notabilis)": "NC_029411.1",
+    "🦅 Bayağı Kuzgun (Corvus corax)": "NC_029347.1",
+    "🐦 Bayağı Serçe (Passer domesticus)": "NC_025612.1",
+    "🐦 Sinek Kuşu / Kolibri (Archilochus alexandri)": "NC_010099.1",
+    "🦤 Bayağı Pelikan (Pelecanus Onocrotalus)": "NC_028441.1",
 
-    # --- SÜRÜNGENLER, AMFİBİLER & DİNOZOR AKRABALARI ---
-    "🐊 Nil Timsahı (Crocodylus niloticus)": "NC_002744.1",
-    "🐊 Bayağı Aligator (Alligator mississippiensis)": "NC_001922.1",
-    "🦎 Komodo Ejderi (Varanus komodoensis)": "NC_020022.1",
-    "🐢 Galápagos Dev Kaplumbağası (Chelonoidis niger)": "NC_028438.1",
-    "🐢 Deri Sırtlı Deniz Kaplumbağası (Dermochelys coriacea)": "NC_018569.1",
+    # ==========================================
+    # 🐊 8. SÜRÜNGENLER & AMFİBİLER
+    # ==========================================
+    "🐊 Nil Timsahı (Crocodylus niloticus)": "NC_001920.1",
+    "🐊 Amerikan Aligatörü (Alligator mississippiensis)": "NC_001922.1",
+    "🐊 Gavial (Gavialis gangeticus)": "NC_021088.1",
+    "Komodo Ejderi (Varanus komodoensis)": "NC_010974.1",
+    "🦎 Bayağı Bukalemun (Chamaeleo calyptratus)": "NC_028434.1",
+    "🦎 Yeşil İguana (Iguana iguana)": "NC_002793.1",
+    "🐍 Kral Kobra (Ophiophagus hannah)": "NC_011394.1",
+    "🐍 Bayağı Engerek (Vipera berus)": "NC_028439.1",
+    "🐍 Piton Yılanı (Python bivittatus)": "NC_021479.1",
+    "🐍 Yeşil Anakonda (Eunectes murinus)": "NC_028437.1",
+    "🐢 Dev Galapagos Kaplumbağası (Chelonoidis niger)": "NC_028436.1",
+    "🐢 Çorbacı Deri Sırtlı Deniz Kaplumbağası (Dermochelys coriacea)": "NC_028440.1",
+    "🐢 Çorba Kaplumbağası (Chelonia mydas)": "NC_000886.1",
     "🦎 Tuatara (Sphenodon punctatus)": "NC_004815.1",
-    "🐸 Aksolotl (Ambystoma mexicanum)": "NC_008229.1",
-    "🐸 Boğa Kurbağası (Rana catesbeiana)": "NC_022880.1",
+    "🐸 Afrika Pençeli Kurbağası (Xenopus laevis)": "NC_001573.1",
+    "🐸 Boğa Kurbağası (Rana catesbeiana)": "NC_002805.1",
+    "🐸 Aksolotl / Semender (Ambystoma mexicanum)": "NC_008229.1",
+    "🦎 Lekeli Semender (Salamandra salamandra)": "NC_011538.1",
 
-    # --- BALIKLAR & DENİZ CANLILARI ---
-    "🦈 Grönland Köpekbalığı (Somniosus microcephalus)": "NC_050842.1",
+    # ==========================================
+    # 🦈 9. BALIKLAR & DENİZ CANLILARI
+    # ==========================================
     "🦈 Büyük Beyaz Köpekbalığı (Carcharodon carcharias)": "NC_022415.1",
     "🦈 Balina Köpekbalığı (Rhincodon typus)": "NC_023456.1",
-    "🐟 Latimeria / Sölakant (Latimeria chalumnae) [Canlı Fosil]": "NC_001804.1",
-    "🐟 Ziraat Zebrafişi (Danio rerio)": "NC_002333.2",
+    "🦈 Çekiç Başlı Köpekbalığı (Sphyrna lewini)": "NC_022830.1",
+    "🐟 Bayağı Ton Balığı (Thunnus thynnus)": "NC_004386.1",
     "🐟 Atlantik Somonu (Salmo salar)": "NC_001960.1",
-    "🐠 Bayağı Japon Balığı (Carassius auratus)": "NC_002081.1",
+    "🐟 Bayağı Morina / Mezgit (Gadus morhua)": "NC_002081.2",
+    "🐟 Zebra Balığı (Danio rerio)": "NC_002333.2",
+    "🐟 Japon Balığı (Carassius auratus)": "NC_002811.1",
+    "🐟 Bayağı Hamsi (Engraulis encrasicolus)": "NC_028080.1",
+    "🐟 Bayağı Mersin Balığı (Acipenser sturio)": "NC_028122.1",
+    "🐟 Latimeria / Sölakant (Latimeria chalumnae) [Canlı Fosil]": "NC_000829.1",
+    "🐟 Avustralya Akciğerli Balığı (Neoceratodus forsteri)": "NC_000868.2",
 
-    # --- EKLEM BACAKLILAR & OMURGASIZLAR ---
+    # ==========================================
+    # 🐝 10. OMURGASIZLAR & BÖCEKLER
+    # ==========================================
     "🐝 Bal Arısı (Apis mellifera)": "NC_001566.1",
-    "🪰 Meyve Sinek (Drosophila melanogaster)": "NC_001709.1",
-    "🦀 Kral Yengeç (Paralithodes camtschaticus)": "NC_020029.1",
-    "🐙 Dev Pasifik Ahtapotu (Enteroctopus dofleini)": "NC_029729.1",
-    "🦑 Dev Mürekkep Balığı (Architeuthis dux)": "NC_030030.1",
+    "🪰 Sirke Sineği (Drosophila melanogaster)": "NC_001709.1",
+    "🦟 Sıtma Sivrisineği (Anopheles gambiae)": "NC_002084.1",
+    "🦋 Kral Kelebeği (Danaus plexippus)": "NC_008230.1",
+    "🪲 Bayağı Hamamböceği (Periplaneta americana)": "NC_006076.1",
+    "🐙 Dev Pasifik Ahtapotu (Enteroctopus dofleini)": "NC_029703.1",
+    "🦑 Dev Mürekkep Balığı (Architeuthis dux)": "NC_021147.1",
+    "🦞 Istakoz (Homarus americanus)": "NC_015600.1",
+    "🦐 Yaban Karidesi (Penaeus monodon)": "NC_002184.1",
+    "🪱 Nematod / Solucan (Caenorhabditis elegans)": "NC_001328.1",
 
-    # --- ÖZEL SEÇENEK ---
+    # ==========================================
+    # ✏️ ÖZEL KULLANICI GİRDİSİ
+    # ==========================================
     "✏️ Custom (Özel NCBI Accession ID)": "CUSTOM"
 }
 
@@ -330,7 +455,6 @@ def dizileri_hizala(seq1, seq2):
         alignments = aligner.align(seq1, seq2)
         if len(alignments) > 0:
             aligned = alignments[0]
-            # aligned.sequences[0] ve aligned.sequences[1] üzerinden güvenli string alma
             aligned_seq1 = "".join([seq1[i] if i != -1 else "-" for i in aligned.indices[0]])
             aligned_seq2 = "".join([seq2[j] if j != -1 else "-" for j in aligned.indices[1]])
             return aligned_seq1, aligned_seq2
@@ -405,7 +529,7 @@ with tab_analiz:
     tur1_secim = st.sidebar.selectbox("1. Tür / Taşıyıcı Konak", list(HAZIR_TURLER.keys()), index=0, key="tur1_select")
     numbat_acc = st.sidebar.text_input("1. Tür NCBI Kodu", "NC_011949.1", key="tur1_acc_input") if HAZIR_TURLER[tur1_secim] == "CUSTOM" else HAZIR_TURLER[tur1_secim]
 
-    tur2_secim = st.sidebar.selectbox("2. Tür / Hedef Canlı", list(HAZIR_TURLER.keys()), index=1, key="tur2_select")
+    tur2_secim = st.sidebar.selectbox("2. Tür / Hedef Canlı", list(HAZIR_TURLER.keys()), index=4, key="tur2_select")
     thylacine_acc = st.sidebar.text_input("2. Tür NCBI Kodu", "NC_028319.1", key="tur2_acc_input") if HAZIR_TURLER[tur2_secim] == "CUSTOM" else HAZIR_TURLER[tur2_secim]
 
     target_gene_raw = st.sidebar.selectbox("İncelenecek Mitokondriyal Gen", list(GEN_KOD_HARITASI.keys()), index=0, key="gene_select")
@@ -422,224 +546,172 @@ with tab_analiz:
         if not rec1 or not rec2:
             st.error("❌ NCBI üzerinden GenBank kayıtları çekilemedi. Bağlantınızı veya Accession kodlarını kontrol edin.")
         else:
-            if selected_code == "ALL_13":
-                all_genes = ["ND1", "ND2", "ND3", "ND4", "ND4L", "ND5", "ND6", "CYTB", "COX1", "COX2", "COX3", "ATP6", "ATP8"]
-                all_results, all_farklar = [], []
+            all_genes = ["ND1", "ND2", "ND3", "ND4", "ND4L", "ND5", "ND6", "CYTB", "COX1", "COX2", "COX3", "ATP6", "ATP8"]
+            target_list = all_genes if selected_code == "ALL_13" else [selected_code]
+            
+            sonuclar = []
+            tum_farklar = []
 
-                for g in all_genes:
-                    res = gen_analiz_et(g, rec1, rec2, crispr_mode)
-                    if res:
-                        all_results.append(res)
-                        all_farklar.extend(res["farklar"])
-
-                if all_results:
-                    tot_mutations = sum(r["mutations"] for r in all_results)
-                    avg_risk = sum(r["risk_score"] for r in all_results) / len(all_results)
-
-                    c1, c2, c3, c4 = st.columns(4)
-                    c1.metric("Analiz Edilen Gen", f"{len(all_results)} / 13 CDS")
-                    c2.metric("Toplam İkame Mutasyonu", f"{tot_mutations} AA")
-                    c3.metric("Mitonükleer Risk Endeksi", f"%{avg_risk:.1f}")
-                    c4.metric("Uyum Durumu", "YÜKSEK BİYOFİZİKSEL FARK" if avg_risk > 35 else "UYUMLU")
-
-                    st.markdown("---")
-                    st.markdown("### 📊 Proteom Düzeyinde Mutasyon Biyofizik Haritası")
-                    df_all = pd.DataFrame(all_farklar)
-                    
-                    if not df_all.empty:
-                        fig = px.scatter(
-                            df_all, x="Pozisyon", y="Lokal Risk Skoru", color="Gen", size="Hidrofobiklik Δ",
-                            hover_data=["Tür 1 (AA)", "Tür 2 (AA)", "BLOSUM62 Skoru"],
-                            template="plotly_dark", height=450
-                        )
-                        fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
-                        st.plotly_chart(fig, use_container_width=True, key="plotly_all_genes_chart")
-
-                        st.markdown("### 📋 Mito-CRISPR Rehber RNA (gRNA) ve Mutasyon Dökümü")
-                        st.dataframe(df_all, use_container_width=True)
-
-                    st.session_state["son_analiz"] = f"Tüm 13 gen taranmıştır. Mutasyon: {tot_mutations} AA, Genel Risk Skoru: %{avg_risk:.1f}."
-            else:
-                res = gen_analiz_et(selected_code, rec1, rec2, crispr_mode)
+            for g_code in target_list:
+                res = gen_analiz_et(g_code, rec1, rec2, crispr_mode)
                 if res:
-                    c1, c2, c3, c4 = st.columns(4)
-                    c1.metric("Gen", selected_code)
-                    c2.metric("Dizi Uzunluğu", f"{res['seq_len']} AA")
-                    c3.metric("Mutasyon Sayısı", f"{res['mutations']}")
-                    c4.metric("Spesifik Gen Riski", f"%{res['risk_score']:.1f}")
+                    sonuclar.append(res)
+                    tum_farklar.extend(res["farklar"])
 
-                    st.session_state["son_sequence"] = res["seq2"]
+            if sonuclar:
+                df_res = pd.DataFrame(sonuclar)
+                
+                # Metrik Kartları
+                m1, m2, m3, m4 = st.columns(4)
+                m1.metric("İncelenen Gen Sayısı", len(sonuclar))
+                m2.metric("Toplam Mutasyon Noktası", len(tum_farklar))
+                ort_risk = df_res["risk_score"].mean()
+                m3.metric("Ortalama Uyumsuzluk Riski", f"%{ort_risk:.1f}")
+                m4.metric("Kritik Uyumsuz Gen", df_res.loc[df_res['risk_score'].idxmax()]['gene'])
 
-                    st.markdown("---")
-                    df_fark = pd.DataFrame(res['farklar'])
-                    if not df_fark.empty:
-                        fig = px.scatter(
-                            df_fark, x="Pozisyon", y="Lokal Risk Skoru", size="Hidrofobiklik Δ", color="BLOSUM62 Skoru",
-                            hover_data=["Tür 1 (AA)", "Tür 2 (AA)"], template="plotly_dark", height=400
-                        )
-                        fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
-                        st.plotly_chart(fig, use_container_width=True, key="plotly_single_gene_chart")
-                        st.dataframe(df_fark, use_container_width=True)
+                st.markdown("---")
 
-                    st.session_state["son_analiz"] = f"{selected_code} geni analiz edildi. Mutasyon: {res['mutations']} AA, Risk: %{res['risk_score']:.1f}."
-    else:
-        st.info("👈 Analizi başlatmak için sol panelden türleri seçip **'BİYOİNFORMATİK ANALİZİ BAŞLAT'** butonuna tıklayın.")
+                # Görselleştirme Grafikleri
+                col_g1, col_g2 = st.columns(2)
+                
+                with col_g1:
+                    fig_bar = px.bar(
+                        df_res, x="gene", y="risk_score", color="risk_score",
+                        title="Gen Bazlı Mitokondriyal Uyumsuzluk Skoru (%)",
+                        color_continuous_scale="Reds", labels={"risk_score": "Risk (%)", "gene": "Gen"}
+                    )
+                    fig_bar.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#f8fafc')
+                    st.plotly_chart(fig_bar, use_container_width=True)
+
+                with col_g2:
+                    fig_mut = px.scatter(
+                        df_res, x="gene", y="mutations", size="seq_len", color="risk_score",
+                        title="Mutasyon Yükü vs Gen Uzunluğu",
+                        color_continuous_scale="Viridis", labels={"mutations": "Mutasyon Sayısı", "gene": "Gen"}
+                    )
+                    fig_mut.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font_color='#f8fafc')
+                    st.plotly_chart(fig_mut, use_container_width=True)
+
+                # Mutasyon Detay Tablosu
+                if tum_farklar:
+                    st.markdown("### 📋 Mutasyon ve Biyofiziksel Değişim Detayları")
+                    df_farklar = pd.DataFrame(tum_farklar)
+                    st.dataframe(df_farklar, use_container_width=True)
+
+                # AI Analiz Özeti İçin State Kaydı
+                st.session_state["son_sequence"] = sonuclar[0]["seq1"]
+                st.session_state["son_analiz"] = f"NCBI Analiz Özeti:\nTür 1: {rec1.description}\nTür 2: {rec2.description}\nToplam {len(tum_farklar)} amino asit mutasyonu tespit edildi. Ortalama Mitokondriyal Risk Skoru: %{ort_risk:.2f}."
+                st.success("✅ Biyoinformatik analizi başarıyla tamamlandı. Detaylı biyolojik değerlendirme için 'Gemini AI Biyo-Danışman' sekmesini kullanabilirsiniz.")
+            else:
+                st.warning("Seçilen gen(ler) için geçerli kodlama dizileri (CDS) eşleştirilemedi.")
 
 # ==========================================
 # TAB 2: py3Dmol PDB GÖRSELLEŞTİRİCİ
 # ==========================================
 with tab_3d_view:
-    st.markdown("### 🧬 py3Dmol İnteraktif 3D Protein Yapı Analizörü")
-    st.caption("RCSB PDB veritabanından PDB ID ile veya kendi yükleyeceğiniz .pdb dosyaları ile etkileşimli 3D görselleştirme.")
+    st.markdown("### 🧬 PDB Yapısal Moleküler Görselleştirici")
+    st.caption("PDB veritabanından çekilen veya yerel olarak yüklenen protein yapılarını etkileşimli olarak inceleyin.")
 
-    col_view1, col_view2 = st.columns([1, 3])
+    c1, c2, c3 = st.columns([2, 2, 2])
+    with c1:
+        pdb_code = st.text_input("PDB Kodunu Girin (ör. 1A2C, 6VXX)", "1A2C", key="pdb_code_input")
+    with c2:
+        style_type = st.selectbox("Görselleştirme Stili", ["cartoon", "stick", "sphere", "line"], index=0, key="3d_style_select")
+    with c3:
+        color_scheme = st.selectbox("Renk Şeması", ["spectrum", "chain", "secondary structure", "residue"], index=0, key="3d_color_select")
 
-    with col_view1:
-        st.markdown("#### 🎨 3D Ayarlar")
-        render_style = st.selectbox("Gösterim Modu", ["cartoon", "stick", "sphere"], index=0, key="render_style_select")
-        color_scheme = st.selectbox("Renk Şeması", ["spectrum", "chain", "secondary structure"], index=0, key="color_scheme_select")
-        show_surface = st.checkbox("Moleküler Yüzey (VDW Surface) Ekle", value=False, key="surface_checkbox")
-        
-        source_type = st.radio("PDB Veri Kaynağı", ["RCSB PDB kütüphanesi", "PDB Dosyası Yükle (.pdb)"], key="source_type_radio")
+    if pdb_code:
+        try:
+            view = py3Dmol.view(query=f'pdb:{pdb_code.lower()}')
+            if style_type == "cartoon":
+                view.setStyle({'cartoon': {'color': color_scheme}})
+            elif style_type == "stick":
+                view.setStyle({'stick': {}})
+            elif style_type == "sphere":
+                view.setStyle({'sphere': {}})
+            else:
+                view.setStyle({'line': {}})
 
-    with col_view2:
-        if source_type == "RCSB PDB kütüphanesi":
-            pdb_id_input = st.text_input("RCSB PDB Accession Code", value="1A23", help="Örn: 1A23, 6VXX, 2RH1", key="pdb_id_input").strip()
-            if st.button("3D Yapıyı Çiz (PDB ID)", key="draw_pdb_btn"):
-                view = py3Dmol.view(width=800, height=500)
-                view.addModel(f'pdb:{pdb_id_input}', 'pdb')
-                
-                style_dict = {'colorscheme': color_scheme} if color_scheme in ['spectrum', 'chain'] else {}
-                view.setStyle({render_style: style_dict})
-                    
-                if show_surface:
-                    view.addSurface(py3Dmol.VDW, {'opacity': 0.5})
-                    
-                view.zoomTo()
-                showmol(view, height=500, width=800)
-        else:
-            uploaded_pdb = st.file_uploader("Özel .pdb Dosyası Seçin", type=["pdb"], key="pdb_file_uploader")
-            if uploaded_pdb is not None:
-                pdb_str = uploaded_pdb.getvalue().decode("utf-8")
-                view = py3Dmol.view(width=800, height=500)
-                view.addModel(pdb_str, 'pdb')
-                
-                style_dict = {'colorscheme': color_scheme} if color_scheme in ['spectrum', 'chain'] else {}
-                view.setStyle({render_style: style_dict})
-                    
-                if show_surface:
-                    view.addSurface(py3Dmol.VDW, {'opacity': 0.5})
-                    
-                view.zoomTo()
-                showmol(view, height=500, width=800)
+            view.zoomTo()
+            showmol(view, height=500, width=800)
+        except Exception as e:
+            st.error(f"PDB yapısı yüklenirken hata oluştu: {e}")
 
 # ==========================================
-# TAB 3: ESMFold ANLIK 3D YAPI TAHMİNİ
+# TAB 3: ESMFold 3D YAPI TAHMİNİ
 # ==========================================
 with tab_esmfold:
-    st.markdown("### 🔮 ESMFold API (Yapay Zeka ile Anlık 3D Protein Katlanması)")
-    st.caption("Epitop veya amino asit dizisinden yapay zeka ile PDB üretimi ve py3Dmol entegrasyonu.")
+    st.markdown("### 🔮 Meta ESMFold Anlık Yapı Tahmin Modülü")
+    st.caption("Amino asit dizisini girin, yapay zekâ destekli ESMFold API'si ile katlanmış 3D protein yapısını anında simüle edin.")
 
-    varsayilan_dizi = st.session_state.get("son_sequence", "")
-    
-    user_fasta = st.text_area("Amino Asit Dizisi (FASTA / Düz Metin)", value=varsayilan_dizi, height=120, key="fasta_input")
+    default_fasta = st.session_state.get("son_sequence", "MTPMRTINPLMKLINHSFIDLPTPSNISAWWNFGSLLGACLILQITTGLFLAMHYSPDASTAFSSIA")
+    input_fasta = st.text_area("Amino Asit Dizisi (FASTA / Düz Metin)", default_fasta, height=120, key="esmfold_fasta_area")
 
-    if st.button("✨ ESMFold Yapay Zeka ile 3D PDB Yapısını Tahmin Et", key="predict_esmfold_btn"):
-        clean_seq = "".join(user_fasta.split()).upper()
-        clean_seq = "".join([aa for aa in clean_seq if aa in AMINO_ACID_PROPERTIES])
-        
-        if len(clean_seq) > 400:
-            st.warning("⚠️ Hızlı API tahmini için dizi uzunluğu 400 amino asitten az olmalıdır.")
-        elif len(clean_seq) == 0:
-            st.error("❌ Lütfen geçerli bir amino asit dizisi girin.")
+    if st.button("🔮 3D PROTEİN YAPISINI TAHMİN ET (ESMFold)", key="btn_esmfold_predict"):
+        cleaned_seq = "".join(input_fasta.split()).upper()
+        if len(cleaned_seq) < 10:
+            st.warning("Geçerli bir 3D tahmin için en az 10 amino asitlik bir dizi giriniz.")
         else:
-            with st.spinner("Meta ESMFold API üzerinden 3D atomik koordinatlar hesaplanıyor..."):
+            with st.spinner("Meta ESMFold API servisine bağlanılıyor, yapı simüle ediliyor..."):
                 try:
                     url = "https://api.esmatlas.com/foldSequence/v1/pdb/"
-                    headers = {"Content-Type": "text/plain"}
-                    response = requests.post(url, data=clean_seq, headers=headers, timeout=60)
-                    
-                    if response.status_code == 200:
-                        pdb_data = response.text
-                        st.success("✅ 3D Katlanma Yapısı Başarıyla Hesaplandı!")
+                    res = requests.post(url, data=cleaned_seq, headers={"Content-Type": "text/plain"}, timeout=30)
+                    if res.status_code == 200:
+                        pdb_data = res.text
+                        st.success("✅ ESMFold 3D Yapı Tahmini Başarıyla Oluşturuldu!")
                         
-                        view = py3Dmol.view(width=850, height=500)
-                        view.addModel(pdb_data, 'pdb')
-                        view.setStyle({'cartoon': {'colorscheme': 'spectrum'}})
-                        view.zoomTo()
-                        showmol(view, height=500, width=850)
+                        view_esm = py3Dmol.view(width=800, height=500)
+                        view_esm.addModel(pdb_data, "pdb")
+                        view_esm.setStyle({'cartoon': {'color': 'spectrum'}})
+                        view_esm.zoomTo()
+                        showmol(view_esm, height=500, width=800)
 
                         st.download_button(
-                            label="📥 Üretilen .PDB Dosyasını İndir",
+                            label="💾 PDB Dosyasını İndir",
                             data=pdb_data,
                             file_name="esmfold_predicted_structure.pdb",
                             mime="chemical/x-pdb",
                             key="download_pdb_btn"
                         )
                     else:
-                        st.error(f"❌ ESMFold Servis Hatası (HTTP {response.status_code}). Servis aşırı yüklü veya dizi geçersiz olabilir.")
-                except Exception as e:
-                    st.error(f"❌ Bağlantı Hatası: {str(e)}")
+                        st.error(f"ESMFold API Servisi Hata Döndürdü (Status Code: {res.status_code}). Lütfen tekrar deneyin.")
+                except Exception as ex:
+                    st.error(f"ESMFold servisine erişilirken bir hata oluştu: {ex}")
 
 # ==========================================
-# TAB 4: GOOGLE GEMINI AI BİYO-DANIŞMAN
+# TAB 4: GEMINI AI BİYO-DANIŞMAN
 # ==========================================
 with tab_ai_bot:
-    st.markdown("### 🤖 Mgen Analysis Google Gemini AI Biyo-Danışmanı")
-    st.caption("Genetik mühendisliği, CRISPR, de-extinction veya genel moleküler biyoloji sorularınızı Google Gemini ile yanıtlayın.")
+    st.markdown("### 🤖 Gemini AI Biyo-Danışman")
+    st.caption("Genomik analizleriniz, mutasyon riskleri, CRISPR stratejileri veya biyoinformatik kodları hakkında yapay zeka ile doğrudan sohbet edin.")
 
-    gemini_api_key = None
-    try:
-        gemini_api_key = st.secrets.get("GEMINI_API_KEY", None)
-    except Exception:
-        pass
+    api_key = st.secrets.get("GEMINI_API_KEY", None)
 
-    for msg in st.session_state["chat_messages"]:
-        st.chat_message(msg["role"]).write(msg["content"])
+    if not api_key:
+        api_key = st.text_input("Gemini API Key Giriniz (Streamlit Secrets'a Eklenmediyse):", type="password", key="user_gemini_key")
 
-    if user_prompt := st.chat_input("Sorunuzu yazın (Örn: ESMFold pLDDT skoru ne anlama gelir?)", key="chat_input_widget"):
-        st.session_state["chat_messages"].append({"role": "user", "content": user_prompt})
-        st.chat_message("user").write(user_prompt)
+    if api_key and HAS_GENAI:
+        try:
+            genai.configure(api_key=api_key)
+            model = genai.GenerativeModel('gemini-1.5-flash')
 
-        analiz_ozet = st.session_state.get("son_analiz", "Kullanıcı henüz bir biyoinformatik analiz çalıştırmadı.")
+            for msg in st.session_state["chat_messages"]:
+                st.chat_message(msg["role"]).write(msg["content"])
 
-        if gemini_api_key:
-            try:
-                genai.configure(api_key=gemini_api_key)
+            if prompt := st.chat_input("Biyoinformatik analizinizi veya biyolojik sorularınızı sorun..."):
+                st.session_state["chat_messages"].append({"role": "user", "content": prompt})
+                st.chat_message("user").write(prompt)
+
+                context_prompt = f"Bağlam: {st.session_state['son_analiz']}\n\nKullanıcı Sorusu: {prompt}"
                 
-                system_instruction = (
-                    "Sen Mgen Analysis platformunda görev yapan senior seviye bir Biyoinformatik Uzmanı ve Sentetik Biyoloji Danışmanısın. "
-                    "Kullanıcı sana genetik, biyofizik, de-extinction, CRISPR, protein katlanması, mitokondriyal DNA veya genel bilim ile ilgili HER TÜRLÜ soruyu sorabilir. "
-                    "Yanıtların son derece akademik, detaylı, yapıcı ve bilimsel olarak doğru olmalıdır. "
-                    f"Kullanıcının mevcut analiz bağlamı: '{analiz_ozet}'"
-                )
+                with st.spinner("Gemini Biyo-Danışman yanıtlıyor..."):
+                    response = model.generate_content(context_prompt)
+                    bot_reply = response.text
 
-                model = genai.GenerativeModel(
-                    model_name="gemini-1.5-pro",
-                    system_instruction=system_instruction
-                )
+                st.session_state["chat_messages"].append({"role": "assistant", "content": bot_reply})
+                st.chat_message("assistant").write(bot_reply)
 
-                history = []
-                for m in st.session_state["chat_messages"][:-1]:
-                    role = "user" if m["role"] == "user" else "model"
-                    history.append({"role": role, "parts": [m["content"]]})
-
-                chat = model.start_chat(history=history)
-
-                with st.spinner("Gemini AI düşünüyor ve yanıtı hazırlıyor..."):
-                    response = chat.send_message(user_prompt)
-                    reply = response.text
-
-            except Exception as e:
-                reply = f"❌ Gemini API Hatası: {str(e)}"
-        else:
-            reply = (
-                "⚠️ **Google Gemini API Anahtarı Bulunamadı!**\n\n"
-                "Yapay zekanın evrensel sorulara yanıt verebilmesi için `.streamlit/secrets.toml` "
-                "dosyanıza veya Streamlit Cloud Secrets paneline API anahtarınızı tanımlamalısınız:\n\n"
-                "```toml\nGEMINI_API_KEY = 'AIzaSy...'\n```\n\n"
-                f"**Mevcut Analiz Durumunuz:** {analiz_ozet}"
-            )
-
-        st.session_state["chat_messages"].append({"role": "assistant", "content": reply})
-        st.chat_message("assistant").write(reply)
+        except Exception as e:
+            st.error(f"Gemini API Bağlantı Hatası: {e}")
+    else:
+        st.info("💡 AI Biyo-Danışmanı kullanabilmek için geçerli bir Gemini API Anahtarı tanımlanmış olmalıdır.")
