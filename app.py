@@ -6,7 +6,7 @@ import plotly.express as px
 import pandas as pd
 import requests
 import py3Dmol
-from st3dmol import showmol
+from stmol import showmol
 import openai
 
 # --- SAYFA KONFİGÜRASYONU ---
