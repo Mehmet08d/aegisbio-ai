@@ -129,38 +129,127 @@ AMINO_ACID_PROPERTIES = {
     'V': {'charge': 0, 'hydrophobicity': 4.2, 'size': 140.0, 'helix_propensity': 1.06}
 }
 
+# 100+ CANLI İÇEREN KAPSAMLI GENOM VERİTABANI
 HAZIR_TURLER = {
+    # --- MEMELİLER: KESELİLER & MARSUPIALS ---
     "🦘 Numbat (Myrmecobius fasciatus) [Taşıyıcı Konak]": "NC_011949.1",
     "🐅 Tasman Kaplanı / Thylacine (Thylacinus cynocephalus) [Tükenmiş]": "NC_028319.1",
     "🦘 Kızıl Kanguru (Macropus rufus)": "NC_023522.1",
     "🐨 Koala (Phascolarctos cinereus)": "NC_021975.1",
+    "🦡 Tasman Canavarı (Sarcophilus harrisii)": "NC_013770.1",
+    "🦘 Vombat (Vombatus ursinus)": "NC_003322.1",
+    "🦔 Opossum (Didelphis virginiana)": "NC_001610.1",
+    "🦘 Şeker Planörü (Petaurus breviceps)": "NC_013606.1",
+
+    # --- MEMELİLER: HORTUMLULAR & DE-EXTINCTION ---
     "🐘 Asya Fili (Elephas maximus) [Taşıyıcı Konak]": "NC_005129.2",
     "🐘 Afrika Savan Fili (Loxodonta africana)": "NC_000934.1",
+    "🐘 Afrika Orman Fili (Loxodonta cyclotis)": "NC_013850.1",
     "🦣 Yünlü Mamut (Mammuthus primigenius) [Tükenmiş]": "NC_007596.2",
     "🦣 Kolombiya Mamutu (Mammuthus columbi) [Tükenmiş]": "NC_015529.1",
     "🦣 Düz Dişli Fil (Palaeoloxodon antiquus) [Tükenmiş]": "NC_034825.1",
-    "🕊️ Şeritli Güvercin (Patagioenas fasciata) [Taşıyıcı Konak]": "NC_028503.1",
-    "🕊️ Yolcu Güvercini (Ectopistes migratorius) [Tükenmiş]": "NC_026723.1",
-    "🕊️ Kaya Güvercini (Columba livia)": "NC_013978.1",
-    "🦤 Dodo Kuşu (Raphus cucullatus) [Tükenmiş]": "NC_008263.1",
-    "🦅 İmparator Penguen (Aptenodytes forsteri)": "NC_023091.1",
-    "🦅 Gökdoğan Şahini (Falco peregrinus)": "NC_029348.1",
+    "🦣 Amerikan Mastodonu (Mammut americanum) [Tükenmiş]": "NC_009592.1",
+
+    # --- MEMELİLER: PRIMATLAR & İNSANSILAR ---
     "👤 Modern İnsan (Homo sapiens)": "NC_012920.1",
     "🦴 Neandertal İnsanı (Homo neanderthalensis) [Tükenmiş]": "NC_011137.1",
     "🦴 Denisova İnsanı (Denisova hominin) [Tükenmiş]": "NC_013993.1",
     "🐒 Şempanze (Pan troglodytes)": "NC_001643.1",
+    "🐒 Bonobo (Pan paniscus)": "NC_001644.1",
     "🦍 Batı Gorili (Gorilla gorilla)": "NC_011120.1",
+    "🦍 Doğu Gorili (Gorilla beringei)": "NC_011121.1",
+    "🦧 Sumatra Orangutanı (Pongo abelii)": "NC_002083.1",
+    "🦧 Borneo Orangutanı (Pongo pygmaeus)": "NC_001646.1",
+    "🐒 Şebek / Rhesus Maymunu (Macaca mulatta)": "NC_005943.1",
+    "🐒 Anubis Babunu (Papio anubis)": "NC_001992.1",
+
+    # --- MEMELİLER: ETÇİLLER & KEDİGİLLER / KÖPEKGİLLER ---
     "⚔️ Kılıç Dişli Kaplan (Smilodon fatalis) [Tükenmiş]": "NC_030752.1",
     "🦁 Aslan (Panthera leo)": "NC_028321.1",
     "🐅 Kaplan (Panthera tigris)": "NC_010642.1",
     "🐆 Kar Leoparı (Panthera uncia)": "NC_010638.1",
+    "🐆 Jaguar (Panthera onca)": "NC_025262.1",
+    "🐆 Pars / Leopar (Panthera pardus)": "NC_010641.1",
+    "🐆 Çita (Acinonyx jubatus)": "NC_005212.1",
+    "ค Puma (Puma concolor)": "NC_016470.1",
+    "🐱 Evcil Kedi (Felis catus)": "NC_001700.1",
     "🐺 Gri Kurt (Canis lupus)": "NC_009686.1",
-    "🦭 Dugong (Dugong dugon) [Taşıyıcı Konak]": "NC_003314.1",
-    "🐋 Steller Deniz İneği (Hydrodamalis gigas) [Tükenmiş]": "NC_045268.1",
-    "🦈 Grönland Köpekbalığı (Somniosus microcephalus)": "NC_050842.1",
-    "🦔 Çıplak Kör Fare (Heterocephalus glaber)": "NC_015112.1",
+    "🐕 Evcil Köpek (Canis lupus familiaris)": "NC_002008.4",
+    "🦊 Kızıl Tilki (Vulpes vulpes)": "NC_008434.1",
+    "🦊 Kutup Tilkisi (Vulpes lagopus)": "NC_026528.1",
+    "🦮 Çakal (Canis aureus)": "NC_028328.1",
+    "🦮 Dingo (Canis lupus dingo)": "NC_011211.1",
     "🐻 Kutup Ayısı (Ursus maritimus)": "NC_009692.1",
     "🐻 Bozayı (Ursus arctos)": "NC_003427.1",
+    "🐻 Mağara Ayısı (Ursus spelaeus) [Tükenmiş]": "NC_011112.1",
+    "🐼 Dev Panda (Ailuropoda melanoleuca)": "NC_009484.1",
+
+    # --- MEMELİLER: DENİZ MEMELİLERİ & TOYNAKLILAR ---
+    "🐋 Steller Deniz İneği (Hydrodamalis gigas) [Tükenmiş]": "NC_045268.1",
+    "🦭 Dugong (Dugong dugon) [Taşıyıcı Konak]": "NC_003314.1",
+    "🐋 Mavi Balina (Balaenoptera musculus)": "NC_001601.1",
+    "🐬 Adayolu Yunusu (Tursiops truncatus)": "NC_012059.1",
+    "🐋 Katil Balina / Orka (Orcinus orca)": "NC_023889.1",
+    "🦛 Hipopotam (Hippopotamus amphibius)": "NC_000889.1",
+    "🦏 Beyaz Gergedan (Ceratotherium simum)": "NC_001808.1",
+    "🦏 Siyah Gergedan (Diceros bicornis)": "NC_012682.1",
+    "🦓 Bayağı Zebra (Equus quagga)": "NC_008777.1",
+    "🐴 Evcil At (Equus caballus)": "NC_001640.1",
+    "🐴 Przewalski Atı (Equus przewalskii)": "NC_024223.1",
+    "🦣 Mağara Bizonu (Bison priscus) [Tükenmiş]": "NC_027233.1",
+    "🦬 Yak (Bos mutus)": "NC_018519.1",
+
+    # --- MEMELİLER: KEMİRGENLER & DİĞER İLGİNÇ TÜRLER ---
+    "🦔 Çıplak Kör Fare (Heterocephalus glaber)": "NC_015112.1",
+    "🦫 Kunduz (Castor fiber)": "NC_028625.1",
+    "🦔 Kirpi (Erinaceus europaeus)": "NC_002080.1",
+    "🦇 Büyük Yarasa (Pteropus neohibernicus)": "NC_012840.1",
+    "🦥 Üç Parmaklı Tembel Hayvan (Bradypus tridactylus)": "NC_006922.1",
+    "🦔 Karıncayiyen (Myrmecophaga tridactyla)": "NC_007533.1",
+
+    # --- KUŞLAR & DE-EXTINCTION AVIAN SPECIES ---
+    "🦤 Dodo Kuşu (Raphus cucullatus) [Tükenmiş]": "NC_008263.1",
+    "🕊️ Yolcu Güvercini (Ectopistes migratorius) [Tükenmiş]": "NC_026723.1",
+    "🕊️ Şeritli Güvercin (Patagioenas fasciata) [Taşıyıcı Konak]": "NC_028503.1",
+    "🕊️ Kaya Güvercini (Columba livia)": "NC_013978.1",
+    "🦅 Dev Moa (Dinornis robustus) [Tükenmiş]": "NC_002674.1",
+    "🦅 Fil Kuşu (Aepyornis maximus) [Tükenmiş]": "NC_026729.1",
+    "🐧 Büyük Auk (Pinguinus impennis) [Tükenmiş]": "NC_030228.1",
+    "🦅 İmparator Penguen (Aptenodytes forsteri)": "NC_023091.1",
+    "🦅 Gökdoğan Şahini (Falco peregrinus)": "NC_029348.1",
+    "🦅 Kel Kartal (Haliaeetus leucocephalus)": "NC_008550.1",
+    "🦩 Şili Flamingosu (Phoenicopterus chilensis)": "NC_027271.1",
+    "🐔 Evcil Tavuk (Gallus gallus)": "NC_001323.1",
+    "🦆 Yeşilbaş Ördek (Anas platyrhynchos)": "NC_009684.1",
+    "🦜 Kakapo (Strigops habroptilus)": "NC_005931.1",
+
+    # --- SÜRÜNGENLER, AMFİBİLER & DİNOZOR AKRABALARI ---
+    "🐊 Nil Timsahı (Crocodylus niloticus)": "NC_002744.1",
+    "🐊 Bayağı Aligator (Alligator mississippiensis)": "NC_001922.1",
+    "🦎 Komodo Ejderi (Varanus komodoensis)": "NC_020022.1",
+    "🐢 Galápagos Dev Kaplumbağası (Chelonoidis niger)": "NC_028438.1",
+    "🐢 Deri Sırtlı Deniz Kaplumbağası (Dermochelys coriacea)": "NC_018569.1",
+    "🦎 Tuatara (Sphenodon punctatus)": "NC_004815.1",
+    "🐸 Aksolotl (Ambystoma mexicanum)": "NC_008229.1",
+    "🐸 Boğa Kurbağası (Rana catesbeiana)": "NC_022880.1",
+
+    # --- BALIKLAR & DENİZ CANLILARI ---
+    "🦈 Grönland Köpekbalığı (Somniosus microcephalus)": "NC_050842.1",
+    "🦈 Büyük Beyaz Köpekbalığı (Carcharodon carcharias)": "NC_022415.1",
+    "🦈 Balina Köpekbalığı (Rhincodon typus)": "NC_023456.1",
+    "🐟 Latimeria / Sölakant (Latimeria chalumnae) [Canlı Fosil]": "NC_001804.1",
+    "🐟 Ziraat Zebrafişi (Danio rerio)": "NC_002333.2",
+    "🐟 Atlantik Somonu (Salmo salar)": "NC_001960.1",
+    "🐠 Bayağı Japon Balığı (Carassius auratus)": "NC_002081.1",
+
+    # --- EKLEM BACAKLILAR & OMURGASIZLAR ---
+    "🐝 Bal Arısı (Apis mellifera)": "NC_001566.1",
+    "🪰 Meyve Sinek (Drosophila melanogaster)": "NC_001709.1",
+    "🦀 Kral Yengeç (Paralithodes camtschaticus)": "NC_020029.1",
+    "🐙 Dev Pasifik Ahtapotu (Enteroctopus dofleini)": "NC_029729.1",
+    "🦑 Dev Mürekkep Balığı (Architeuthis dux)": "NC_030030.1",
+
+    # --- ÖZEL SEÇENEK ---
     "✏️ Custom (Özel NCBI Accession ID)": "CUSTOM"
 }
 
@@ -408,7 +497,6 @@ with tab_3d_view:
                 view = py3Dmol.view(width=800, height=500)
                 view.addModel(f'pdb:{pdb_id_input}', 'pdb')
                 
-                # RENKLENDİRME VE STİL AYARI DÜZELTİLDİ
                 style_dict = {'colorscheme': color_scheme} if color_scheme in ['spectrum', 'chain'] else {}
                 view.setStyle({render_style: style_dict})
                     
@@ -416,7 +504,6 @@ with tab_3d_view:
                     view.addSurface(py3Dmol.VDW, {'opacity': 0.5})
                     
                 view.zoomTo()
-                # FIX: showmol içindeki 'key' parametresi kaldırıldı (stmol hatası önlendi)
                 showmol(view, height=500, width=800)
         else:
             uploaded_pdb = st.file_uploader("Özel .pdb Dosyası Seçin", type=["pdb"], key="pdb_file_uploader")
@@ -432,7 +519,6 @@ with tab_3d_view:
                     view.addSurface(py3Dmol.VDW, {'opacity': 0.5})
                     
                 view.zoomTo()
-                # FIX: showmol içindeki 'key' parametresi kaldırıldı
                 showmol(view, height=500, width=800)
 
 # ==========================================
@@ -440,14 +526,13 @@ with tab_3d_view:
 # ==========================================
 with tab_esmfold:
     st.markdown("### 🔮 ESMFold API (Yapay Zeka ile Anlık 3D Protein Katlanması)")
-    st.caption("Epitop veya amino asit dizisinden 3 saniye içinde yapay zeka ile PDB üretimi ve py3Dmol entegrasyonu.")
+    st.caption("Epitop veya amino asit dizisinden yapay zeka ile PDB üretimi ve py3Dmol entegrasyonu.")
 
     varsayilan_dizi = st.session_state.get("son_sequence", "MTPMRTINPLMKLINHSFIDLPTPSNISAWWNFGSLLGACLILQITTGLFLAMHYSPDASTAFSSIAHITRDVNYGWIRYLHANGASMFFICLFLHIGRGLYYGSFLYSETWNIGIILLLATMATAFMGYVLPWGQMSFWGATVITNLFSAIPYIGTNLVEWIWGGFSVDKATLTRFFAFHFILPFIMALAAVHLTFLHETGSNNPTGLNSDSDKIPFHPYYTIKDILGALLLLALLLLTLFSPDLLGDPDNYTLANPLNTPPHIKPEWYFLFAYTILRSVPNKLGGVLALLLSILILIVIPILHTSKQRSMMFRPLSQCLFWLLTADLLTLTWIGGQPVEHPYITIGQMASILYFSIILILMPISGIIEDKMLKWN")
     
     user_fasta = st.text_area("Amino Asit Dizisi (FASTA / Düz Metin)", value=varsayilan_dizi, height=120, key="fasta_input")
 
     if st.button("✨ ESMFold Yapay Zeka ile 3D PDB Yapısını Tahmin Et", key="predict_esmfold_btn"):
-        # Gelen dizideki gereksiz karakterlerin temizlenmesi
         clean_seq = "".join(user_fasta.split()).upper()
         clean_seq = "".join([aa for aa in clean_seq if aa in AMINO_ACID_PROPERTIES])
         
@@ -470,7 +555,6 @@ with tab_esmfold:
                         view.addModel(pdb_data, 'pdb')
                         view.setStyle({'cartoon': {'colorscheme': 'spectrum'}})
                         view.zoomTo()
-                        # FIX: showmol 'key' parametresi kaldırıldı
                         showmol(view, height=500, width=850)
 
                         st.download_button(
