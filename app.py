@@ -682,7 +682,7 @@ with tab_esmfold:
 # TAB 4: GEMINI AI BİYO-DANIŞMAN
 # ==========================================
 with tab_ai_bot:
-    st.markdown("### 🤖 Gemini AI Biyo-Danışman")
+    st.markdown("### 🤖  AI Biyo-Danışman")
     st.caption("Genomik analizleriniz, mutasyon riskleri, CRISPR stratejileri veya biyoinformatik kodları hakkında yapay zeka ile doğrudan sohbet edin.")
 
     api_key = st.secrets.get("GEMINI_API_KEY", None)
