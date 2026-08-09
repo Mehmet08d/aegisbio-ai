@@ -2,7 +2,7 @@ streamlit
 biopython
 plotly
 pandas
-openai
 requests
-py3Dmol
+py3dmol
 st3dmol
+openai
