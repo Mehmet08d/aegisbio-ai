@@ -1,8 +1,8 @@
-streamlit
-biopython
-plotly
-pandas
-requests
-py3dmol
-st3dmol
-openai
+streamlit>=1.30.0
+biopython>=1.81
+plotly>=5.18.0
+pandas>=2.0.0
+requests>=2.31.0
+py3Dmol>=2.0.0
+st3dmol>=0.0.9
+openai>=1.10.0
