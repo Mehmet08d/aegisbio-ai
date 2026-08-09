@@ -418,7 +418,7 @@ with tab_3d_view:
                     
                 view.zoomTo()
                 # FIX: removeChild Hatasını Önleyen Unique Key
-                showmol(view, height=500, width=800, key="3dmol_viewer_tab2")
+                showmol(view, height=500, width=800,)
         else:
             uploaded_pdb = st.file_uploader("Özel .pdb Dosyası Seçin", type=["pdb"], key="pdb_file_uploader")
             if uploaded_pdb is not None:
