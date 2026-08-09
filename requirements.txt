@@ -1,10 +1,8 @@
-streamlit>=1.30.0
-biopython>=1.81
-plotly>=5.18.0
-pandas>=2.0.0
-requests>=2.31.0
+streamlit
+biopython
+plotly
+pandas
+requests
 py3Dmol
 stmol
-ipywidgets
-ipython_genutils
-google-genai
+google-generativeai
