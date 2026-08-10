@@ -256,8 +256,7 @@ AMINO_ACID_PROPERTIES = {
     },
 }
 
-
-    HAZIR_TURLER = {
+HAZIR_TURLER = {
     # --- DE-EXTINCTION & ELEPHANTS ---
     "🦣 Yünlü Mamut (Mammuthus primigenius) [Tükenmiş]": "NC_007596.2",
     "🦣 Kolombiya Mamutu (Mammuthus columbi) [Tükenmiş]": "NC_015529.1",
