@@ -256,21 +256,144 @@ AMINO_ACID_PROPERTIES = {
     },
 }
 
-HAZIR_TURLER = {
+
+    HAZIR_TURLER = {
+    # --- DE-EXTINCTION & ELEPHANTS ---
     "🦣 Yünlü Mamut (Mammuthus primigenius) [Tükenmiş]": "NC_007596.2",
+    "🦣 Kolombiya Mamutu (Mammuthus columbi) [Tükenmiş]": "NC_015529.1",
     "🐘 Asya Fili (Elephas maximus) [Taşıyıcı Konak]": "NC_005129.2",
-    "🐅 Tasman Kaplanı / Thylacine (Thylacinus cynocephalus) [Tükenmiş]": (
-        "NC_028319.1"
-    ),
+    "🐘 Afrika Çalı Fili (Loxodonta africana)": "NC_000934.1",
+    "🐘 Afrika Orman Fili (Loxodonta cyclotis)": "NC_013693.1",
+    "🦣 Düz Dişli Fil (Palaeoloxodon antiquus) [Tükenmiş]": "NC_034250.1",
+    "🦣 Amerikan Mastodonu (Mammut americanum) [Tükenmiş]": "NC_009601.1",
+
+    # --- DE-EXTINCTION FOCUS & THYLACINES ---
+    "🐅 Tasman Kaplanı (Thylacinus cynocephalus) [Tükenmiş]": "NC_028319.1",
     "🦘 Numbat (Myrmecobius fasciatus) [Taşıyıcı Konak]": "NC_011949.1",
     "🦤 Dodo Kuşu (Raphus cucullatus) [Tükenmiş]": "NC_008263.1",
+    "🐦 Rodrigues Solitaire (Pezophaps solitaria) [Tükenmiş]": "NC_013893.1",
+    "🕊️ Nişobar Güvercini (Caloenas nicobarica) [Taşıyıcı Konak]": "NC_023968.1",
     "⚔️ Kılıç Dişli Kaplan (Smilodon fatalis) [Tükenmiş]": "NC_030752.1",
+    "🦅 Haast Kartalı (Hieraaetus moorei) [Tükenmiş]": "NC_013805.1",
+    "🕊️ Göçmen Güvercin (Ectopistes migratorius) [Tükenmiş]": "NC_026720.1",
+    "🦜 Carolina Papağanı (Conuropsis carolinensis) [Tükenmiş]": "NC_025582.1",
+    "🦆 Labrador Ördeği (Camptorhynchus labradorius) [Tükenmiş]": "NC_029471.1",
+    "🦤 Dev Moa (Dinornis robustus) [Tükenmiş]": "NC_002674.1",
+    "🦤 Küçük Çalı Moası (Anomalopteryx didiformis) [Tükenmiş]": "NC_002772.1",
+    "🦤 Kivi Kuşu (Apteryx mantelli) [Taşıyıcı Konak]": "NC_002782.1",
+    "🦭 Steller Deniz İneği (Hydrodamalis gigas) [Tükenmiş]": "NC_028624.1",
+    "🦛 Madagaskar Cüce Hipopotamı (Hippopotamus lemerlei) [Tükenmiş]": "NC_023225.1",
+
+    # --- HOMINIDS & PRIMATES ---
     "🦴 Neandertal İnsanı (Homo neanderthalensis) [Tükenmiş]": "NC_011137.1",
+    "🦴 Denisova İnsanı (Denisova hominin) [Tükenmiş]": "NC_013993.1",
     "👤 Modern İnsan (Homo sapiens)": "NC_012920.1",
+    "🐒 Batı Gorili (Gorilla gorilla)": "NC_011120.1",
+    "🐒 Doğu Gorili (Gorilla beringei)": "NC_001645.1",
     "🐒 Şempanze (Pan troglodytes)": "NC_001643.1",
-    "🐕 Evcil Köpek (Canis lupus familiaris)": "NC_002008.4",
+    "🐒 Bonobo (Pan paniscus)": "NC_001644.1",
+    "🦧 Sumatra Orangutanı (Pongo abelii)": "NC_002083.1",
+    "🦧 Borneo Orangutanı (Pongo pygmaeus)": "NC_001646.1",
+    "🐒 Şebek / Rhesus Macaque (Macaca mulatta)": "NC_005943.1",
+    "🐒 Yeşil Maymun (Chlorocebus sabaeus)": "NC_008066.1",
+    "🐒 Halka Kuyruklu Lemur (Lemur catta)": "NC_004025.1",
+
+    # --- FELIDS & CARNIVORA ---
+    "🦁 Mağara Aslanı (Panthera spelaea) [Tükenmiş]": "NC_028308.1",
+    "🐆 Amerikan Aslanı (Panthera atrox) [Tükenmiş]": "NC_028309.1",
+    "🦁 Aslan (Panthera leo)": "NC_009692.1",
+    "🐅 Kaplan (Panthera tigris)": "NC_006835.1",
+    "🐆 Leopar (Panthera pardus)": "NC_010641.1",
+    "🐆 Kar Leoparı (Panthera uncia)": "NC_010638.1",
+    "🐆 Jaguar (Panthera onca)": "NC_009694.1",
+    "🐆 Çita (Acinonyx jubatus)": "NC_005212.1",
     "🐈 Evcil Kedi (Felis catus)": "NC_001700.1",
+    "🐺 Korkunç Kurt / Dire Wolf (Aenocyon dirus) [Tükenmiş]": "NC_058728.1",
+    "🐺 Gri Kurt (Canis lupus)": "NC_009686.1",
+    "🐕 Evcil Köpek (Canis lupus familiaris)": "NC_002008.4",
+    "🦊 Kızıl Tilki (Vulpes vulpes)": "NC_008434.1",
+    "🦊 Kutup Tilkisi (Vulpes lagopus)": "NC_009255.1",
+    "🐻 Mağara Ayısı (Ursus spelaeus) [Tükenmiş]": "NC_011112.1",
+    "🐻 Kutup Ayısı (Ursus maritimus)": "NC_003426.1",
+    "🐻 Boz Ayı (Ursus arctos)": "NC_003427.1",
+    "🐼 Dev Panda (Ailuropoda melanoleuca)": "NC_009484.1",
+    "🦝 Kızıl Panda (Ailurus fulgens)": "NC_009691.1",
+
+    # --- UNGULATES & MEGAFAUNA ---
+    "🦣 Yünlü Gergedan (Coelodonta antiquitatis) [Tükenmiş]": "NC_012680.1",
+    "🦏 Beyaz Gergedan (Ceratotherium simum)": "NC_001808.1",
+    "🦏 Siyah Gergedan (Diceros bicornis)": "NC_012681.1",
+    "🦏 Hint Gergedanı (Rhinoceros unicornis)": "NC_001779.1",
+    "🦤 Aurochs / Yaban Öküzü (Bos primigenius) [Tükenmiş]": "NC_013996.1",
+    "🐂 Sığır / İnek (Bos taurus)": "NC_006853.1",
+    "🦬 Bizon (Bison bison)": "NC_012346.1",
+    "🦬 Avrupa Bizonu (Bison bonasus)": "NC_014044.1",
+    "🐴 Yaban Atı / Tarpan (Equus ferus) [Tükenmiş]": "NC_022268.1",
+    "🐴 Quagga (Equus quagga quagga) [Tükenmiş]": "NC_000892.1",
+    "🐴 Evcil At (Equus caballus)": "NC_001640.1",
+    "🦓 Zebra (Equus quagga)": "NC_008103.1",
+    "🦌 Dev İrlanda Geyiği (Megaloceros giganteus) [Tükenmiş]": "NC_023223.1",
+    "🦌 Kızıl Geyik (Cervus elaphus)": "NC_007704.1",
+    "🦌 Sığın / Sığın Geyiği (Alces alces)": "NC_020683.1",
+    "🐪 Baktriyan Devesi (Camelus bactrianus)": "NC_009628.1",
+    "🦒 Zürafa (Giraffa camelopardalis)": "NC_023961.1",
+    "🦛 Su Aygırı (Hippopotamus amphibius)": "NC_000889.1",
+
+    # --- CETACEANS & MARINE MAMMALS ---
+    "🐋 Mavi Balina (Balaenoptera musculus)": "NC_001601.1",
+    "🐋 Fin Balinası (Balaenoptera physalus)": "NC_001321.1",
+    "🐋 Kambur Balina (Megaptera novaeangliae)": "NC_006927.1",
+    "Whale İspermecet Balinası (Physeter macrocephalus)": "NC_002504.1",
+    "🐬 Katil Balina / Orka (Orcinus orca)": "NC_023889.1",
+    "🐬 Afalina / Yunus (Tursiops truncatus)": "NC_012059.1",
+    "🦭 Karayip Keşiş Foku (Neomonachus tropicalis) [Tükenmiş]": "NC_028625.1",
+    "🦭 Akdeniz Keşiş Foku (Monachus monachus)": "NC_008419.1",
+    "🦭 Deniz Fili (Mirounga leonina)": "NC_008422.1",
+    "🦦 Deniz Samuru (Enhydra lutris)": "NC_010298.1",
+
+    # --- BIRDS ---
+    "🦅 Kel Kartal (Haliaeetus leucocephalus)": "NC_008550.1",
+    "🦅 Şahin (Buteo buteo)": "NC_003128.1",
+    "🦅 Gökdoğan / Peregrine Falcon (Falco peregrinus)": "NC_029348.1",
+    "🦉 Bayağı Puhu (Bubo bubo)": "NC_028441.1",
+    "🐧 İmparator Penguen (Aptenodytes forsteri)": "NC_008432.1",
+    "🐧 Adélie Pengueni (Pygoscelis adeliae)": "NC_000879.1",
+    "🦩 Şili Flamingo (Phoenicopterus chilensis)": "NC_010089.1",
+    "🦜 Gece Papağanı / Kakapo (Strigops habroptila)": "NC_005951.1",
+    "🐓 Evcil Tavuk (Gallus gallus)": "NC_006856.1",
+    "🦆 Yeşilbaş Ördek (Anas platyrhynchos)": "NC_009684.1",
+    "🦚 Bayağı Tavuskuşu (Pavo cristatus)": "NC_015243.1",
+    "🦃 Hindi (Meleagris gallopavo)": "NC_010195.1",
+
+    # --- REPTILES & AMPHIBIANS ---
+    "🦎 Komodo Ejderi (Varanus komodoensis)": "NC_008775.1",
+    "🐊 Nil Timsahı (Crocodylus niloticus)": "NC_002744.1",
+    "🐊 Amerikan Aligatörü (Alligator mississippiensis)": "NC_001922.1",
+    "🐢 Galápagos Dev Kaplumbağası (Chelonoidis niger)": "NC_000888.1",
+    "🐢 Çalı Deri Sırtlı Deniz Kaplumbağası (Dermochelys coriacea)": "NC_000886.1",
+    "🐍 Kral Kobra (Ophiophagus hannah)": "NC_011394.1",
+    "🐍 Yeşil Piton (Morelia viridis)": "NC_012708.1",
+    "🐸 Boğa Kurbağası (Lithobates catesbeianus)": "NC_002805.1",
+    "🦎 Aksolotl (Ambystoma mexicanum)": "NC_000868.1",
+
+    # --- MARSUPIALS & MONOTREMES ---
+    "🦘 Kızıl Kanguru (Osphranter rufus)": "NC_018360.1",
+    "🐨 Koala (Phascolarctos cinereus)": "NC_002831.1",
+    "🦇 Tazmanya Canavarı (Sarcophilus harrisii)": "NC_018359.1",
+    "Ornithorhynchus anatinus (Ornithorhynchus anatinus)": "NC_000891.1",
+    "🦔 Dikenli Karıncayiyan (Tachyglossus aculeatus)": "NC_008291.1",
+
+    # --- INSECTS & INVERTEBRATES ---
+    "🐝 Bal Arısı (Apis mellifera)": "NC_001566.1",
+    "🪰 Meyve Sinek (Drosophila melanogaster)": "NC_001709.1",
+    "🦋 İpek Böceği (Bombyx mori)": "NC_002355.1",
+    "🦗 Göçmen Çekirge (Locusta migratoria)": "NC_001712.1",
+    "🐙 Bayağı Ahtapot (Octopus vulgaris)": "NC_006353.1",
+    "🦑 Dev Mürekkep Balığı (Architeuthis dux)": "NC_021464.1",
+
+    # --- CUSTOM ENTRY ---
     "✏️ Custom (Özel NCBI Accession ID)": "CUSTOM",
+
 }
 
 HAZIR_PDBLER = {
