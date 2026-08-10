@@ -392,10 +392,8 @@ AMINO_ACID_PROPERTIES = {
     "🦑 Dev Mürekkep Balığı (Architeuthis dux)": "NC_021464.1",
 
     # --- CUSTOM ENTRY ---
-    "✏️ Custom (Özel NCBI Accession ID)": "CUSTOM",
-
+    "✏️ Custom (Özel NCBI Accession ID)": "CUSTOM",                            
 }
-
 HAZIR_PDBLER = {
     "Serbest Seçim / Manuel PDB Girişi": "MANUAL",
     "Kompleks IV: Sitokrom c Oksidaz (Mito-COX)": "1OCC",
