@@ -1,18 +1,8 @@
-# Streamlit UI & Core
-streamlit>=1.31.0
-
-# Biyoenformatik & Veri Analizi
-biopython>=1.81
-pandas>=2.0.0
-numpy>=1.24.0
-
-# API & Ağ İletişimi
-requests>=2.31.0
-
-# Görselleştirme (Streamlit Cloud Uyumlu)
-plotly>=5.18.0
-matplotlib>=3.7.0
-
-# 3D Görselleştirme
-py3Dmol>=2.0.4
-st-py3dmol>=0.0.5
+streamlit
+biopython
+pandas
+numpy
+requests
+plotly
+py3Dmol
+google-generativeai
