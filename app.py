@@ -1235,7 +1235,7 @@ with tab_ai_bot:
       else:
         try:
           genai.configure(api_key=gemini_api_key)
-          model = genai.GenerativeModel("gemini-2.5-flash")
+          model = genai.GenerativeModel("gemini-2.0-flash")
 
           system_context = (
               f"Sistem Bağlamı ve Son Analiz Durumu:\n{st.session_state['son_analiz']}\n\n"
