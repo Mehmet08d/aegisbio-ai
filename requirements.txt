@@ -1,8 +1,8 @@
 streamlit
-biopython
-pandas
-numpy
-requests
-plotly
+stmol
 py3Dmol
+biopython
 google-generativeai
+pandas
+plotly
+requests
