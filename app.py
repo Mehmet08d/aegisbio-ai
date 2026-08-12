@@ -1249,7 +1249,7 @@ else:
             model = genai.GenerativeModel(active_model_name)
         except Exception as e:
             st.error(f"Gemini API Yapılandırma Hatası: {e}")
-          st.markdown(response_text)
+st.markdown(response_text)
 
       st.session_state["chat_messages"].append(
           {"role": "assistant", "content": response_text}
