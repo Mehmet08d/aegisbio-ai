@@ -1234,9 +1234,16 @@ with tab_ai_bot:
         st.markdown(response_text)
       else:
         try:
-          genai.configure(api_key=gemini_api_key)
-          model = genai.GenerativeModel("gemini-1.5-flash")
+       
 
+# API anahtarını tanımla
+genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+
+# Sürümü ve modeli v1 / gemini-2.5-flash (veya gemini-2.0-flash) olarak başlat
+model = genai.GenerativeModel(
+    model_name="gemini-2.5-flash",
+    # Eğer istemci düzeyinde v1 belirtmek istersen:
+)
           system_context = (
               f"Sistem Bağlamı ve Son Analiz Durumu:\n{st.session_state['son_analiz']}\n\n"
           )
