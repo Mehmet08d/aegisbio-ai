@@ -1234,27 +1234,20 @@ with tab_ai_bot:
         st.markdown(response_text)
       else:
         try:
-            # API anahtarını tanımla
-genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+          try:
+    # try altında kalan TÜM satırlar klavyedeki TAB tuşu ile içeride olmalı
+    genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 
-# Sürümü ve modeli v1 / gemini-2.5-flash (veya gemini-2.0-flash) olarak başlat
-model = genai.GenerativeModel(
-    model_name="gemini-2.5-flash",
-    # Eğer istemci düzeyinde v1 belirtmek istersen:
-)
-          system_context = (
-              f"Sistem Bağlamı ve Son Analiz Durumu:\n{st.session_state['son_analiz']}\n\n"
-          )
-          full_prompt = system_context + prompt
+    # Aktif çalışan ücretsiz modeli belirleme
+    active_model_name = "gemini-2.5-flash"
+    for m in genai.list_models():
+        if "generateContent" in m.supported_generation_methods and "flash" in m.name:
+            active_model_name = m.name
+            break
 
-          with st.spinner("Gemini AI yanıt hazırlıyor..."):
-            res = model.generate_content(full_prompt)
-            response_text = res.text
-            st.markdown(response_text)
-        except Exception as e:
-          response_text = (
-              f"❌ Gemini API yanıt üretirken bir hata oluştu: {e}"
-          )
+    model = genai.GenerativeModel(active_model_name)
+except Exception as e:
+    st.error(f"Gemini API Yapılandırma Hatası: {e}")
           st.markdown(response_text)
 
       st.session_state["chat_messages"].append(
