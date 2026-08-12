@@ -1,8 +1,10 @@
 streamlit
-stmol
-py3Dmol
 biopython
 google-generativeai
 pandas
 plotly
 requests
+py3Dmol
+stmol
+ipywidgets
+ipython_genutils
