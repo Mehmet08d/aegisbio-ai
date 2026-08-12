@@ -10,7 +10,7 @@ import plotly.graph_objects as go
 import py3Dmol
 import requests
 import streamlit as st
-from st_mol import showmol  # 'stmol' yerine 'st_mol' olarak düzeltildi
+from stmol import showmol  
 
 # --- SAYFA KONFİGÜRASYONU ---
 st.set_page_config(
