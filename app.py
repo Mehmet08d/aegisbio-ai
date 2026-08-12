@@ -9,6 +9,7 @@ import py3Dmol
 import requests
 import streamlit as st
 from stmol import showmol
+import numpy as np
 
 # --- SAYFA KONFİGÜRASYONU ---
 st.set_page_config(
