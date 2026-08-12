@@ -1231,20 +1231,19 @@ with tab_ai_bot:
             "⚠️ Lütfen konuşmayı başlatmak için geçerli bir Google Gemini API"
             " anahtarı girin."
         )
-        st.markdown(response_text)
-      else:
-    # ÖRNEK: Tab veya fonksiyon içindeyse (4 boşluklu yapı)
-with tab_ai_bot:
-    try:
-        genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-        active_model_name = "gemini-2.5-flash"
-        for m in genai.list_models():
-            if "generateContent" in m.supported_generation_methods and "flash" in m.name:
-                active_model_name = m.name
-                break
-        model = genai.GenerativeModel(active_model_name)
-    except Exception as e:
-        st.error(f"Gemini API Yapılandırma Hatası: {e}")
+        st.markdown(response_text) 
+else:
+    with tab_ai_bot:
+        try:
+            genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+            active_model_name = "gemini-2.5-flash"
+            for m in genai.list_models():
+                if "generateContent" in m.supported_generation_methods and "flash" in m.name:
+                    active_model_name = m.name
+                    break
+            model = genai.GenerativeModel(active_model_name)
+        except Exception as e:
+            st.error(f"Gemini API Yapılandırma Hatası: {e}")
           st.markdown(response_text)
 
       st.session_state["chat_messages"].append(
