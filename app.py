@@ -1232,13 +1232,18 @@ with tab_ai_bot:
             " anahtarı girin."
         )
         st.markdown(response_text) 
+if kosul:
+    st.write("Bir şeyler")
 else:
     with tab_ai_bot:
         try:
             genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
             active_model_name = "gemini-2.5-flash"
             for m in genai.list_models():
-                if "generateContent" in m.supported_generation_methods and "flash" in m.name:
+                if (
+                    "generateContent" in m.supported_generation_methods
+                    and "flash" in m.name
+                ):
                     active_model_name = m.name
                     break
             model = genai.GenerativeModel(active_model_name)
