@@ -450,13 +450,12 @@ st.markdown(
 )
 
 # ANA SEKMELER
-tab_analiz, tab_crispr, tab_3d_view, tab_esmfold, tab_ai_bot = st.tabs([
+tab_analiz, tab_crispr, tab_3d_view, tab_esmfold = st.tabs([
     "🚀 Biyoinformatik Analiz Engine",
     "🧬 Mito-CRISPR & Base Editing",
     "🧊 py3Dmol PDB Görselleştirici",
-    "🔮 ESMFold 3D & pLDDT Analizi",
-    "🤖 Gemini AI Biyo-Danışman",
-])
+    "🔮 ESMFold 3D & pLDDT Analizi"
+    ])
 
 
 # ==========================================
