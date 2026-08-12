@@ -1,15 +1,16 @@
 import math
 import re
+import time
 from Bio import Entrez, SeqIO
 from Bio.Align import PairwiseAligner, substitution_matrices
+import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import py3Dmol
 import requests
 import streamlit as st
-from stmol import showmol
-import numpy as np
+from st_mol import showmol  # 'stmol' yerine 'st_mol' olarak düzeltildi
 
 # --- SAYFA KONFİGÜRASYONU ---
 st.set_page_config(
