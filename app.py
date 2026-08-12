@@ -1251,6 +1251,6 @@ else:
             st.error(f"Gemini API Yapılandırma Hatası: {e}")
 st.markdown(response_text)
 
-      st.session_state["chat_messages"].append(
+st.session_state["chat_messages"].append(
           {"role": "assistant", "content": response_text}
       )
