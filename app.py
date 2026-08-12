@@ -1231,6 +1231,7 @@ with tab_ai_bot:
             "⚠️ Lütfen konuşmayı başlatmak için geçerli bir Google Gemini API"
             " anahtarı girin."
         )
+response_text = None       
 st.markdown(response_text) 
 if kosul:
     st.write("Bir şeyler")
