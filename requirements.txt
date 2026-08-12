@@ -1,9 +1,8 @@
 streamlit
-biopython
+numpy
 pandas
 plotly
-requests
+biopython
 py3Dmol
-stmol
-ipywidgets
-ipython_genutils
+st-mol
+requests
