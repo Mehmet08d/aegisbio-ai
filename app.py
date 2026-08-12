@@ -454,8 +454,9 @@ tab_analiz, tab_crispr, tab_3d_view, tab_esmfold = st.tabs([
     "🚀 Biyoinformatik Analiz Engine",
     "🧬 Mito-CRISPR & Base Editing",
     "🧊 py3Dmol PDB Görselleştirici",
-    "🔮 ESMFold 3D & pLDDT Analizi"
-    ])
+    "🔮 ESMFold 3D & pLDDT Analizi",
+    "🧬 Evrim Simülatörü"
+])
 
 
 # ==========================================
@@ -1195,3 +1196,187 @@ with tab_esmfold:
         st.error(f"Bağlantı sırasında bir hata oluştu: {err}")
 
 
+with tab_simulasyon:
+    # --- 3D PROTEİN DESTEKLİ SİMÜLATÖR KODU BURADAN BAŞLIYOR ---
+    st.header("🧬 Sentetik Genom Sandbox & Evrim Simülatörü v2.5")
+    st.caption(
+        "Türkiye'nin ilk interaktif web tabanlı genetik stres, mutasyon ve 3D protein görselleştirmeli evrim motoru."
+    )
+
+    col1, col2 = st.columns([1, 2])
+
+    with col1:
+        st.subheader("1. Sentetik Genom Tasarımı")
+
+        # Temel Genler
+        has_rad_resistance = st.checkbox("🛡️ Radyasyon Direnç Geni (PprA)")
+        has_antifreeze = st.checkbox("❄️ Antifriz Proteini (AFP)")
+        has_heat_shock = st.checkbox("🔥 Isı Şoku Proteini (HSP70)")
+        has_metabolism_boost = st.checkbox("⚡ Yüksek Metabolizma (ATP+)")
+        
+        # Sentetik Genler
+        has_piezophile = st.checkbox("🌊 Yüksek Basınç Direnç Geni (Piezo-Protein)")
+        has_heavy_metal = st.checkbox("🧪 Ağır Metal/Asit Nötralizasyonu (Chelatin)")
+        has_bioluminescence = st.checkbox("💡 Biyolüminesans / Işık Saçma (GFP-Luciferase)")
+        has_biofilm = st.checkbox("🛡️ Koruyucu Biyofilm Katmanı (Exopolysaccharide)")
+
+        # Çevresel Stres Faktörü
+        st.subheader("2. Çevresel Koşullar")
+        environment = st.selectbox(
+            "Simülasyon Ortamı Seçin:",
+            [
+                "Çernobil Tipi Yüksek Radyasyon",
+                "Antarktika Derin Buzulu (-30°C)",
+                "Volkanik Termal Kaynak (+95°C)",
+                "Mariana Çukuru Derin Deniz Basıncı (1100 atm)",
+                "Asidik Toksik Atık Gölü (pH 1.5)",
+                "Standart Laboratuvar Biyo-Reaktörü",
+            ],
+        )
+
+        start_sim = st.button("🚀 Evrim Simülasyonunu Başlat", type="primary", use_container_width=True)
+
+    with col2:
+        st.subheader("3. Gerçek Zamanlı Analiz & Popülasyon Dinamiği")
+
+        if start_sim:
+            # Başlangıç Parametreleri
+            generations = 50
+            population = 100
+            pop_history = []
+            mutation_events = []
+
+            # Biyolojik Basit Uyum (Fitness) Puanı Hesaplama
+            fitness = 1.0
+
+            if "Radyasyon" in environment:
+                fitness += 2.5 if has_rad_resistance else -2.0
+            elif "Buzul" in environment:
+                fitness += 2.5 if has_antifreeze else -2.0
+            elif "Volkanik" in environment:
+                fitness += 2.5 if has_heat_shock else -2.0
+            elif "Mariana" in environment:
+                fitness += 2.5 if has_piezophile else -2.0
+            elif "Asidik" in environment:
+                fitness += 2.5 if has_heavy_metal else -2.0
+
+            # İkincil Avantajlar
+            if has_metabolism_boost:
+                fitness += 0.4
+            if has_biofilm:
+                fitness += 0.3
+            if has_bioluminescence:
+                fitness += 0.1
+
+            # Simülasyon Döngüsü
+            chart_holder = st.empty()
+            status_holder = st.empty()
+
+            current_pop = population
+            for gen in range(1, generations + 1):
+                growth_rate = (fitness * 0.1) + np.random.normal(0, 0.05)
+                current_pop = int(
+                    current_pop * (1 + growth_rate) * (1 - current_pop / 1000)
+                )
+
+                if np.random.rand() < 0.12:
+                    delta_fitness = np.random.choice([-0.4, 0.6])
+                    fitness += delta_fitness
+                    mut_type = "Pozitif (Adaptasyon Arttı)" if delta_fitness > 0 else "Zararlı (Sistemik Bozulma)"
+                    mutation_events.append(f"Nesil {gen}: Nokta Mutasyonu ({mut_type})")
+
+                if current_pop <= 0:
+                    current_pop = 0
+                    pop_history.append({"Nesil": gen, "Popülasyon": current_pop, "Adaptasyon Skoru": round(fitness, 2)})
+                    break
+
+                pop_history.append({"Nesil": gen, "Popülasyon": current_pop, "Adaptasyon Skoru": round(fitness, 2)})
+
+                df_sim = pd.DataFrame(pop_history)
+                fig = px.line(
+                    df_sim,
+                    x="Nesil",
+                    y="Popülasyon",
+                    title=f"Popülasyon Grafiği - {environment}",
+                    line_shape="spline",
+                )
+                fig.update_traces(line_color="#00FF88", line_width=3)
+                chart_holder.plotly_chart(fig, use_container_width=True)
+
+                status_holder.info(
+                    f"⏳ **Nesil:** {gen}/{generations} | 🦠 **Canlı Popülasyon:** {current_pop} | 📊 **Adaptasyon Skoru:** {round(fitness, 2)}"
+                )
+                time.sleep(0.04)
+
+            # Sonuçlar ve Ek Özellikler
+            if current_pop > 0:
+                st.success(
+                    "🎉 **ORGANİZMA HAYATTA KALDI!** Sentetik canlı seçilen ortama tam adaptasyon sağladı."
+                )
+                
+                # --- SENTETİK BİYO-PASAPORT VE FASTA ÜRETİCİ ---
+                st.divider()
+                st.subheader("📄 Sentetik Canlı Pasaportu & FASTA Genetik Kodu")
+                
+                nucleotides = ["A", "C", "G", "T"]
+                fasta_sequence = "".join(np.random.choice(nucleotides, size=180))
+                formatted_fasta = f">AegisBio_SynOrganism_Gen{generations}_{environment[:4].upper()}\n"
+                formatted_fasta += "\n".join([fasta_sequence[i:i+60] for i in range(0, len(fasta_sequence), 60)])
+
+                c_info1, c_info2 = st.columns(2)
+                with c_info1:
+                    st.write(f"**Biyo-Güvenlik Seviyesi:** `BSL-1 (Sentetik Contained)`")
+                    st.write(f"**Fenotip:** {'Işık Saçan ' if has_bioluminescence else ''}{'Dirençli ' if has_biofilm else ''}Sentetik Bakteri")
+                    st.write(f"**Uyum Başarı Oranı:** `%{(current_pop/1000)*100:.1f}`")
+                
+                with c_info2:
+                    st.download_button(
+                        label="📥 Genom Kodu İndir (.FASTA)",
+                        data=formatted_fasta,
+                        file_name="synthetic_organism_genome.fasta",
+                        mime="text/plain",
+                    )
+
+                # --- 3D PROTEİN YAPISI GÖRSELLEŞTİRİCİ ---
+                st.divider()
+                st.subheader("🧬 Eksprese Edilen Sentetik Protein Yapısı (3D)")
+                st.caption("Organizmanın hayatta kalmasını sağlayan baskın enzimin 3D interaktif modeli (Sürükleyip döndürebilirsiniz):")
+
+                # Seçilen gene göre PDB ID eşleştirme
+                pdb_id = "1BNA"  # Varsayılan B-DNA
+                if has_bioluminescence:
+                    pdb_id = "1EMA"  # GFP (Yeşil Floresan Proteini)
+                elif has_antifreeze:
+                    pdb_id = "1W1I"  # Antifriz Proteini
+                elif has_heat_shock:
+                    pdb_id = "2KHO"  # Heat Shock Proteini (HSP)
+                elif has_rad_resistance:
+                    pdb_id = "1PPR"  # PprA Proteini
+
+                try:
+                    # py3Dmol Görünümü Oluşturma
+                    xyzview = py3Dmol.view(query=f"pdb:{pdb_id}")
+                    xyzview.setStyle({"cartoon": {"color": "spectrum"}})
+                    xyzview.addSurface(py3Dmol.VDW, {"opacity": 0.4, "color": "white"})
+                    xyzview.setBackgroundColor("#0D1117")
+                    xyzview.zoomTo()
+                    
+                    # Streamlit üzerinde gösterme
+                    showmol(xyzview, height=400, width=700)
+                except Exception as e:
+                    st.warning(f"3D Model Yüklenirken Hata Oluştu: {e}")
+
+            else:
+                st.error(
+                    "💀 **POPÜLASYON TÜKENDİ.** Genom tasarımı çevresel stres faktörüne dayanamadı."
+                )
+
+            if mutation_events:
+                with st.expander("🧬 Simülasyon Sırasında Oluşan Mutasyon Günlüğü"):
+                    for m in mutation_events:
+                        st.write(f"- {m}")
+        else:
+            st.info(
+                "Simülasyonu başlatmak için sol panelden gen kombinasyonlarını seçin ve butona basın."
+            )
+    # --- 3D PROTEİN DESTEKLİ SİMÜLATÖR KODU BURADA BİTİYOR ---
