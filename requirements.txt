@@ -1,6 +1,5 @@
 streamlit
 biopython
-google-genai
 pandas
 plotly
 requests
