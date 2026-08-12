@@ -1,8 +1,9 @@
+st-mol
+py3Dmol
 streamlit
 numpy
 pandas
 plotly
 biopython
 requests
-py3Dmol
-st-mol
+
