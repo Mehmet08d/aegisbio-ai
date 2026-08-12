@@ -1233,7 +1233,7 @@ with tab_ai_bot:
         )
         st.markdown(response_text)
       else:
-        try:
+     try:
     genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
     active_model_name = "gemini-2.5-flash"
     for m in genai.list_models():
@@ -1241,8 +1241,6 @@ with tab_ai_bot:
             active_model_name = m.name
             break
     model = genai.GenerativeModel(active_model_name)
-except Exception as e:
-    st.error(f"Gemini API Yapılandırma Hatası: {e}")
 except Exception as e:
     st.error(f"Gemini API Yapılandırma Hatası: {e}")
           st.markdown(response_text)
