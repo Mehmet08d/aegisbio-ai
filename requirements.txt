@@ -3,6 +3,6 @@ numpy
 pandas
 plotly
 biopython
+requests
 py3Dmol
 st-mol
-requests
