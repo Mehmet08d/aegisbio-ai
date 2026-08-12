@@ -1234,9 +1234,7 @@ with tab_ai_bot:
         st.markdown(response_text)
       else:
         try:
-       
-
-# API anahtarını tanımla
+            # API anahtarını tanımla
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 
 # Sürümü ve modeli v1 / gemini-2.5-flash (veya gemini-2.0-flash) olarak başlat
