@@ -2,7 +2,6 @@ import math
 import re
 from Bio import Entrez, SeqIO
 from Bio.Align import PairwiseAligner, substitution_matrices
-import google.generativeai as genai
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
@@ -1197,61 +1196,3 @@ with tab_esmfold:
         st.error(f"Bağlantı sırasında bir hata oluştu: {err}")
 
 
-# ==========================================
-# TAB 5: GEMINI AI BİYO-DANIŞMAN
-# ==========================================
-with tab_ai_bot:
-  st.markdown("### 🤖 Gemini AI Biyo-Danışman")
-  st.caption(
-      "Analiz sonuçlarınız, Mito-CRISPR stratejileriniz ve moleküler modelleme"
-      " sorularınız için akıllı asistan."
-  )
-
-  gemini_api_key = st.text_input(
-      "Google Gemini API Anahtarınız",
-      type="password",
-      key="gemini_api_key_input",
-      help="Google AI Studio üzerinden alacağınız API anahtarını buraya girin.",
-  )
-
-  for msg in st.session_state["chat_messages"]:
-    with st.chat_message(msg["role"]):
-      st.markdown(msg["content"])
-
-  if prompt := st.chat_input("Sorunuzu veya analiz yorum talebinizi yazın..."):
-    st.session_state["chat_messages"].append(
-        {"role": "user", "content": prompt}
-    )
-    with st.chat_message("user"):
-      st.markdown(prompt)
-
-    with st.chat_message("assistant"):
-      if not gemini_api_key:
-        response_text = (
-            "⚠️ Lütfen konuşmayı başlatmak için geçerli bir Google Gemini API"
-            " anahtarı girin."
-        )
-response_text = None       
-st.markdown(response_text) 
-if kosul:
-    st.write("Bir şeyler")
-else:
-    with tab_ai_bot:
-        try:
-            genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-            active_model_name = "gemini-2.5-flash"
-            for m in genai.list_models():
-                if (
-                    "generateContent" in m.supported_generation_methods
-                    and "flash" in m.name
-                ):
-                    active_model_name = m.name
-                    break
-            model = genai.GenerativeModel(active_model_name)
-        except Exception as e:
-            st.error(f"Gemini API Yapılandırma Hatası: {e}")
-st.markdown(response_text)
-
-st.session_state["chat_messages"].append(
-          {"role": "assistant", "content": response_text}
-      )
