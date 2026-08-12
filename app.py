@@ -1234,18 +1234,15 @@ with tab_ai_bot:
         st.markdown(response_text)
       else:
         try:
-          try:
-    # try altında kalan TÜM satırlar klavyedeki TAB tuşu ile içeride olmalı
     genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-
-    # Aktif çalışan ücretsiz modeli belirleme
     active_model_name = "gemini-2.5-flash"
     for m in genai.list_models():
         if "generateContent" in m.supported_generation_methods and "flash" in m.name:
             active_model_name = m.name
             break
-
     model = genai.GenerativeModel(active_model_name)
+except Exception as e:
+    st.error(f"Gemini API Yapılandırma Hatası: {e}")
 except Exception as e:
     st.error(f"Gemini API Yapılandırma Hatası: {e}")
           st.markdown(response_text)
