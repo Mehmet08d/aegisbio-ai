@@ -24,6 +24,15 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+# Google Search Console HTML Etiketi Doğrulaması
+st.markdown(
+    """
+    <head>
+        <meta name="google-site-verification" content="<meta name="google-site-verification" content="w0LESffMOT40g70n8MJSVoeHyLaF5jZICIs0gz09pkE" />" 
+    </head>
+    """,
+    unsafe_allow_html=True,
+)
 # Google Arama Motoru Tanımlama Metni
 st.markdown(
     """
