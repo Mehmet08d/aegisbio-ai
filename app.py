@@ -12,7 +12,27 @@ import requests
 import streamlit as st
 import streamlit.components.v1 as components
 
+# Google Analytics Measurement ID'nizi buraya yazın
+GA_MEASUREMENT_ID = "G-XXXXXXXXXX"  # kendi G- ile başlayan kimliğinizi yapıştırın
 
+# gtag.js kodunu doğrudan üst DOM (head) bölümüne enjekte eden JavaScript
+ga_code = f"""
+    <script>
+        // Parent window (ana sayfa) head bölümüne script ekleme
+        var script = parent.document.createElement('script');
+        script.async = true;
+        script.src = 'https://www.googletagmanager.com/gtag/js?id={GA_MEASUREMENT_ID}';
+        parent.document.getElementsByTagName('head')[0].appendChild(script);
+
+        parent.window.dataLayer = parent.window.dataLayer || [];
+        function gtag(){{parent.window.dataLayer.push(arguments);}}
+        gtag('js', new Date());
+        gtag('config', '{GA_MEASUREMENT_ID}');
+    </script>
+"""
+
+# Komponenti görünmez olarak çalıştır
+components.html(ga_code, height=0, width=0)
 # stmol paketine ihtiyaç duymadan 3D molekül gösteren fonksiyon
 def showmol(view, height=400, width=700):
     spec = view._make_html()
