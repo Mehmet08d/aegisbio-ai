@@ -13,7 +13,7 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 # Google Analytics Measurement ID'nizi buraya yazın
-GA_MEASUREMENT_ID = "G-XXXXXXXXXX"  # kendi G- ile başlayan kimliğinizi yapıştırın
+GA_MEASUREMENT_ID = "G-VTRWZWJSME"  # kendi G- ile başlayan kimliğinizi yapıştırın
 
 # gtag.js kodunu doğrudan üst DOM (head) bölümüne enjekte eden JavaScript
 ga_code = f"""
