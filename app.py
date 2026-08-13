@@ -28,7 +28,7 @@ st.set_page_config(
 st.markdown(
     """
     <head>
-        <meta name="google-site-verification" content="<meta name="google-site-verification" content="w0LESffMOT40g70n8MJSVoeHyLaF5jZICIs0gz09pkE" />" 
+        <meta name="google-site-verification"  content="w0LESffMOT40g70n8MJSVoeHyLaF5jZICIs0gz09pkE" />" 
     </head>
     """,
     unsafe_allow_html=True,
