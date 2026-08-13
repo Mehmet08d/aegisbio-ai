@@ -10,8 +10,13 @@ import plotly.graph_objects as go
 import py3Dmol
 import requests
 import streamlit as st
-from stmol import showmol  
+import streamlit.components.v1 as components
 
+
+# stmol paketine ihtiyaç duymadan 3D molekül gösteren fonksiyon
+def showmol(view, height=400, width=700):
+    spec = view._make_html()
+    components.html(spec, height=height, width=width, scrolling=False)
 # --- SAYFA KONFİGÜRASYONU ---
 st.set_page_config(
     page_title="Mgen Analysis | Enterprise Bio-Suite & De-Extinction Platform",
