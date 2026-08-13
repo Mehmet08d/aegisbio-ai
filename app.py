@@ -24,7 +24,14 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
-
+# Google Arama Motoru Tanımlama Metni
+st.markdown(
+    """
+    <meta name="description" content="AegisBio-AI: Mito-CRISPR, Base Editing, py3Dmol PDB Görselleştirme, ESMFold 3D & pLDDT Analizi ve Biyoinformatik Evrim Simülatörü platformu.">
+    <meta name="keywords" content="biyoinformatik, mito-crispr, base editing, esmfold, pdb viewer, dna analizi, genetik mühendisliği">
+    """,
+    unsafe_allow_html=True,
+)
 # --- SESSION STATE BAŞLATMA ---
 if "chat_messages" not in st.session_state:
   st.session_state["chat_messages"] = [{
